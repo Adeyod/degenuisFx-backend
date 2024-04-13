@@ -20,6 +20,11 @@ app.use(
 
 const port = process.env.PORT || 4444;
 
+app.get('/', (req, res) => {
+  res.send('Welcome to Degenius FX website');
+  return;
+});
+
 app.use('/api/student', studentRoutes);
 app.use('/api/investors', investorRoutes);
 app.use('/api/v2', otherRoutes);
