@@ -10,7 +10,7 @@ const feedBack = async (req, res) => {
 
     if (!name || !email || !rating) {
       return res.json({
-        message: 'All fields are required',
+        error: 'All fields are required',
         status: 400,
         success: false,
       });
@@ -22,7 +22,7 @@ const feedBack = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedName)) {
       return res.json({
-        message: 'Invalid input in the field name',
+        error: 'Invalid input in the field name',
         status: 400,
         success: false,
       });
@@ -30,7 +30,7 @@ const feedBack = async (req, res) => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.json({
-        message: 'Invalid input for email...',
+        error: 'Invalid input for email...',
         status: 400,
         success: false,
       });
@@ -39,7 +39,7 @@ const feedBack = async (req, res) => {
     if (message !== '') {
       if (forbiddenCharsRegex.test(trimmedMessage)) {
         return res.json({
-          message: 'Invalid input for field message',
+          error: 'Invalid input for field message',
           success: false,
           status: 400,
         });
@@ -55,7 +55,7 @@ const feedBack = async (req, res) => {
 
     if (!newFeedBack) {
       return res.json({
-        message: 'Unable to save feedback',
+        error: 'Unable to save feedback',
       });
     }
 
@@ -81,7 +81,7 @@ const contactUs = async (req, res) => {
 
     if (!name || !email || !message || !phoneNumber) {
       return res.json({
-        message: 'All fields are required',
+        error: 'All fields are required',
         status: 400,
         success: false,
       });
@@ -93,7 +93,7 @@ const contactUs = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedName)) {
       return res.json({
-        message: 'Invalid input in the field name',
+        error: 'Invalid input in the field name',
         status: 400,
         success: false,
       });
@@ -101,7 +101,7 @@ const contactUs = async (req, res) => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.json({
-        message: 'Invalid input for email...',
+        error: 'Invalid input for email...',
         status: 400,
         success: false,
       });
@@ -110,7 +110,7 @@ const contactUs = async (req, res) => {
     if (message !== '') {
       if (forbiddenCharsRegex.test(trimmedMessage)) {
         return res.json({
-          message: 'Invalid input for field message',
+          error: 'Invalid input for field message',
           success: false,
           status: 400,
         });
@@ -126,7 +126,7 @@ const contactUs = async (req, res) => {
 
     if (!newContactUs) {
       return res.json({
-        message: 'Unable to save contact us message',
+        error: 'Unable to save contact us message',
       });
     }
 
@@ -154,7 +154,7 @@ const emailSubscription = async (req, res) => {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.json({
-        message: 'Invalid input for email...',
+        error: 'Invalid input for email...',
         status: 400,
         success: false,
       });
@@ -166,7 +166,7 @@ const emailSubscription = async (req, res) => {
 
     if (!newEmailSubscription) {
       return res.json({
-        message: 'Unable to save email',
+        error: 'Unable to save email',
       });
     }
 

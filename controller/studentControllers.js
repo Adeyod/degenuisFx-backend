@@ -38,7 +38,7 @@ const registerStudent = async (req, res) => {
       !DOB
     ) {
       return res.json({
-        message: 'Please fill all mandatory fields',
+        error: 'Please fill all mandatory fields',
         status: 400,
         success: false,
       });
@@ -54,7 +54,7 @@ const registerStudent = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedFirstName)) {
       return res.json({
-        message: `Invalid character in first name field`,
+        error: `Invalid character in first name field`,
         status: 400,
         success: false,
       });
@@ -62,7 +62,7 @@ const registerStudent = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedLastName)) {
       return res.json({
-        message: `Invalid character in last name field`,
+        error: `Invalid character in last name field`,
         status: 400,
         success: false,
       });
@@ -70,7 +70,7 @@ const registerStudent = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
       return res.json({
-        message: `Invalid character in address field`,
+        error: `Invalid character in address field`,
         status: 400,
         success: false,
       });
@@ -78,7 +78,7 @@ const registerStudent = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
       return res.json({
-        message: `Invalid character in country of residence field`,
+        error: `Invalid character in country of residence field`,
         status: 400,
         success: false,
       });
@@ -86,7 +86,7 @@ const registerStudent = async (req, res) => {
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
       return res.json({
-        message: `Invalid character in state of residence field`,
+        error: `Invalid character in state of residence field`,
         status: 400,
         success: false,
       });
@@ -95,7 +95,7 @@ const registerStudent = async (req, res) => {
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.json({
-        message: 'Invalid input for email...',
+        error: 'Invalid input for email...',
         status: 400,
         success: false,
       });
@@ -108,7 +108,7 @@ const registerStudent = async (req, res) => {
       )
     ) {
       return res.json({
-        message:
+        error:
           'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
         success: false,
         status: 401,
@@ -117,7 +117,7 @@ const registerStudent = async (req, res) => {
 
     if (password !== confirmPassword) {
       return res.json({
-        message: 'Password and confirm password do not match',
+        error: 'Password and confirm password do not match',
         status: 400,
         success: false,
       });
@@ -126,7 +126,7 @@ const registerStudent = async (req, res) => {
     const alreadyRegistered = await Student.findOne({ email: trimmedEmail });
     if (alreadyRegistered) {
       return res.json({
-        message: 'Email already exist',
+        error: 'Email already exist',
         status: 400,
         success: false,
       });
@@ -141,7 +141,7 @@ const registerStudent = async (req, res) => {
     if (middleName !== '') {
       if (forbiddenCharsRegex.test(trimmedMiddleName)) {
         return res.json({
-          message: `Invalid character in middle name field`,
+          error: `Invalid character in middle name field`,
           status: 400,
           success: false,
         });
@@ -223,7 +223,7 @@ const verifyStudentEmail = async (req, res) => {
 
     if (!checkToken) {
       return res.json({
-        message: 'Token can not be found',
+        error: 'Token can not be found',
         status: 404,
         success: false,
       });
@@ -237,7 +237,7 @@ const verifyStudentEmail = async (req, res) => {
 
     if (!studentUpdate) {
       return res.json({
-        message: 'Unable to update student',
+        error: 'Unable to update student',
         success: false,
         status: 400,
       });
@@ -268,7 +268,7 @@ const loginStudent = async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.json({
-        message: 'All fields are required',
+        error: 'All fields are required',
         status: 400,
         success: false,
       });
@@ -280,7 +280,7 @@ const loginStudent = async (req, res) => {
 
     if (!isStudent) {
       return res.json({
-        message: 'Invalid credentials',
+        error: 'Invalid credentials',
         status: 400,
         success: false,
       });
@@ -289,7 +289,7 @@ const loginStudent = async (req, res) => {
     const validPassword = await bcrypt.compare(password, isStudent.password);
     if (!validPassword) {
       return res.json({
-        message: 'Invalid credential',
+        error: 'Invalid credential',
         status: 400,
         success: false,
       });
@@ -338,7 +338,7 @@ const loginStudent = async (req, res) => {
 
       if (!jwtSign) {
         return res.json({
-          message: 'Unable to sign user',
+          error: 'Unable to sign user',
           status: 400,
           success: false,
         });
@@ -367,7 +367,7 @@ const getStudent = async (req, res) => {
 
     if (user !== studentId) {
       return res.json({
-        message: 'Not the authorized user',
+        error: 'Not the authorized user',
       });
     }
 
@@ -377,7 +377,7 @@ const getStudent = async (req, res) => {
 
     if (!studentDetails) {
       return res.json({
-        message: 'Student not found',
+        error: 'Student not found',
         status: 404,
         success: false,
       });
