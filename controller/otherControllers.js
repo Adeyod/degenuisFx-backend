@@ -160,6 +160,18 @@ const emailSubscription = async (req, res) => {
       });
     }
 
+    const emailExist = await EmailSubScription({
+      email: trimmedEmail,
+    });
+
+    if (emailExist) {
+      return res.json({
+        error: 'Email already exist',
+        status: 400,
+        success: false,
+      });
+    }
+
     const newEmailSubscription = await new EmailSubScription({
       email: trimmedEmail,
     }).save();

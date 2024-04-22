@@ -7,8 +7,8 @@ import {
 
 const router = express.Router();
 
-router.get('/feedback', feedBack);
-router.get('/contactUs', contactUs);
-router.get('/emailSubscription', emailSubscription);
+router.post('/feedback', feedBack);
+router.post('/contactUs', contactUs);
+router.post('/emailSubscription', emailSubscription);
 
 export default router;
