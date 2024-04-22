@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post('/register', registerStudent);
 router.post('/login', loginStudent);
-router.get('/verify-email/:userId/:token', verifyStudentEmail);
+router.post('/verify-email/:userId/:token', verifyStudentEmail);
 router.get('/getStudent/:studentId', verifyToken, getStudent);
 
 export default router;
