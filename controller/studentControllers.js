@@ -194,7 +194,9 @@ const registerStudent = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(newStudent.email, newStudent.firstName, link);
 
@@ -304,7 +306,7 @@ const loginStudent = async (req, res) => {
       });
 
       if (isValidToken) {
-        const link = `${process.env.FRONTEND_URL}/student/verify-email/${isValidToken.userId}/${isValidToken.token}`;
+        const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
 
         await emailVerification(isStudent.email, isStudent.firstName, link);
 
@@ -323,7 +325,7 @@ const loginStudent = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(isStudent.email, isStudent.firstName, link);
 

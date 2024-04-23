@@ -166,7 +166,7 @@ const registerInvestor = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(newInvestor.email, newInvestor.firstName, link);
 
@@ -194,7 +194,7 @@ const registerInvestor = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(newInvestor.email, newInvestor.firstName, link);
 
@@ -304,7 +304,7 @@ const loginInvestor = async (req, res) => {
       });
 
       if (isValidToken) {
-        const link = `${process.env.FRONTEND_URL}/investors/verify-email/${isValidToken.userId}/${isValidToken.token}`;
+        const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
 
         await emailVerification(isInvestor.email, isInvestor.firstName, link);
 
@@ -323,7 +323,7 @@ const loginInvestor = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(isInvestor.email, isInvestor.firstName, link);
 
