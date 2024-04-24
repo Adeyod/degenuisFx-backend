@@ -13,7 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: 'https://degeniusfxacademy.netlify.app',
+    // origin: 'https://degeniusfxacademy.netlify.app',
+    origin: '*',
     credentials: true,
   })
 );
