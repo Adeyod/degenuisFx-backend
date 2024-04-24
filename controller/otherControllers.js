@@ -1,6 +1,6 @@
 import FeedBack from '../model/feedBackModel.js';
-import EmailSubScription from '../model/emailSubscriptionModel.js';
 import ContactUs from '../model/contactUsModel.js';
+import EmailSubscription from '../model/emailSubscriptionModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -160,7 +160,7 @@ const emailSubscription = async (req, res) => {
       });
     }
 
-    const emailExist = await EmailSubScription({
+    const emailExist = await EmailSubscription.findOne({
       email: trimmedEmail,
     });
 
@@ -172,7 +172,7 @@ const emailSubscription = async (req, res) => {
       });
     }
 
-    const newEmailSubscription = await new EmailSubScription({
+    const newEmailSubscription = await new EmailSubscription({
       email: trimmedEmail,
     }).save();
 

@@ -7,9 +7,9 @@ const emailSubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const EmailSubScription = mongoose.model(
+const EmailSubscription = mongoose.model(
   'EmailSubscription',
   emailSubscriptionSchema
 );
 
-export default EmailSubScription;
+export default EmailSubscription;
