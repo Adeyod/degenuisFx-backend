@@ -1,3 +1,5 @@
 const genderEnum = ['Female', 'Male', 'Others'];
 
-export { genderEnum };
+const memberRole = ['student', 'investor', 'admin'];
+
+export { genderEnum, memberRole };

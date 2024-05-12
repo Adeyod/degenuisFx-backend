@@ -1,5 +1,8 @@
 import Student from '../model/studentModel.js';
-import { emailVerification } from '../utils/nodemailer.js';
+import {
+  emailVerification,
+  forgotPasswordSender,
+} from '../utils/nodemailer.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { StudentToken } from '../model/tokenModel.js';
@@ -22,6 +25,7 @@ const registerStudent = async (req, res) => {
       stateOfResidence,
       gender,
       DOB,
+      role,
     } = req.body;
 
     if (
@@ -159,6 +163,7 @@ const registerStudent = async (req, res) => {
         DOB,
         address: trimmedAddress,
         phoneNumber,
+        role,
       }).save();
 
       const newToken = await new StudentToken({
@@ -185,6 +190,7 @@ const registerStudent = async (req, res) => {
         stateOfResidence: trimmedStateOfResidence,
         gender,
         DOB,
+        role,
         address: trimmedAddress,
         phoneNumber,
       }).save();
@@ -346,10 +352,11 @@ const loginStudent = async (req, res) => {
         });
       }
       return res.json({
-        message: 'Student fetched successfully',
+        message: `${others.role} fetched successfully`,
         success: true,
         status: 200,
         student: others,
+        token: jwtSign,
       });
     }
   } catch (error) {
@@ -403,4 +410,353 @@ const getStudent = async (req, res) => {
   }
 };
 
-export { getStudent, registerStudent, verifyStudentEmail, loginStudent };
+const studentLogout = async (req, res) => {
+  try {
+    const userLogout = await res.cookie('token', '', { maxAge: 1 });
+    if (!userLogout) {
+      return res.json({
+        error: 'unable to log out',
+        success: false,
+        status: 400,
+      });
+    } else {
+      return res.json({
+        message: 'User logged out successfully',
+        success: true,
+        status: 200,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.json({
+        error: 'Email is required',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const trimmedEmail = email.trim();
+
+    // check the email field to prevent input of unwanted characters
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return res.json({
+        error: 'Invalid input for email...',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const findUser = await Student.findOne({ email });
+    if (!findUser) {
+      return res.json({
+        error: 'Email not found',
+        success: false,
+        status: 404,
+      });
+    } else {
+      const token =
+        crypto.randomBytes(32).toString('hex') +
+        crypto.randomBytes(32).toString('hex');
+
+      const newToken = await new StudentToken({
+        token,
+        userId: findUser._id,
+      }).save();
+
+      const link = `${process.env.FRONTEND_URL}/student/resetPassword/${newToken.userId}/${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/student/resetPassword/?userId=${newToken.userId}&token=${newToken.token}`;
+
+      const sendingForgotPassword = await forgotPasswordSender(
+        email,
+        link,
+        findUser.firstName
+      );
+      if (!sendingForgotPassword.response) {
+        return res.json({
+          error: 'Unable to send email. Please try again',
+          success: false,
+          status: 400,
+        });
+      } else {
+        return res.json({
+          message: 'Password reset link has been sent',
+          success: true,
+          status: 200,
+        });
+      }
+    }
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      message: 'Something happened',
+      success: false,
+      status: 500,
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { userId, token } = req.params;
+    const { password, confirmPassword } = req.body;
+    if (!password || !confirmPassword) {
+      return res.json({
+        status: 400,
+        error: 'All fields are required',
+        success: false,
+      });
+    }
+
+    // strong password check
+    if (
+      !/^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,20}$/.test(
+        password
+      )
+    ) {
+      return res.json({
+        error:
+          'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+        success: false,
+        status: 401,
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.json({
+        error: 'Password and confirm password do not match',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const findToken = await StudentToken.findOne({
+      userId,
+      token,
+    });
+
+    if (!findToken) {
+      return res.json({
+        error: 'Token not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    const findUser = await Student.findById({
+      _id: findToken.userId,
+    });
+
+    if (!findUser) {
+      return res.json({
+        error: 'User not found',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    findUser.password = hashedPassword;
+    await findUser.save();
+    await findToken.deleteOne();
+
+    return res.json({
+      message: 'Password reset successfully. You can login',
+      status: 200,
+      success: true,
+    });
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      message: 'Something happened',
+      success: false,
+      status: 500,
+    });
+  }
+};
+
+const resendEmailVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.json({
+        error: 'Email is required',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const trimmedEmail = email.trim();
+
+    // check the email field to prevent input of unwanted characters
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return res.json({
+        error: 'Invalid input for email...',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const findUser = await Student.findOne({ email: trimmedEmail });
+
+    if (!findUser) {
+      return res.json({
+        error: 'User not found',
+        success: false,
+        status: 404,
+      });
+    }
+
+    if (findUser.isVerified === true) {
+      return res.json({
+        error: 'User already verified',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const checkTokenExist = await StudentToken.findOne({
+      userId: findUser._id,
+    });
+
+    if (checkTokenExist) {
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/${checkTokenExist.userId}/${checkTokenExist.token}`;
+
+      // const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`
+
+      await emailVerification(findUser.email, findUser.firstName, link);
+
+      return res.json({
+        message:
+          'Verification link sent successfully. Please verify your email with the link sent to you',
+        success: true,
+        status: 200,
+      });
+    } else {
+      const token =
+        crypto.randomBytes(32).toString('hex') +
+        crypto.randomBytes(32).toString('hex');
+
+      const newToken = await new StudentToken({
+        token,
+        userId: findUser._id,
+      }).save();
+
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+
+      // const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`
+
+      await emailVerification(findUser.email, findUser.firstName, link);
+
+      return res.json({
+        message:
+          'Email verification link sent successfully. Please verify your email with the link sent to you',
+        success: true,
+        status: 200,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      message: 'Something happened',
+      success: false,
+      status: 500,
+    });
+  }
+};
+
+// admin
+const getSingleStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const studentDetails = await Student.findById({
+      _id: studentId,
+    });
+
+    if (!studentDetails) {
+      return res.json({
+        error: 'Student not found',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const { password, ...others } = studentDetails._doc;
+
+    return res.json({
+      message: ' Student fetched successfully',
+      success: true,
+      status: 200,
+      student: others,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      status: 500,
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+// get all students
+const getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find({
+      role: 'student',
+    });
+
+    if (!students) {
+      return res.json({
+        error: 'No student found',
+        success: false,
+        status: 404,
+      });
+    } else {
+      const removePassword = students.map((student) => {
+        const { password, ...others } = student._doc;
+        return others;
+      });
+
+      return res.json({
+        message: 'Students found successfully',
+        success: true,
+        status: 200,
+        students: removePassword,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      status: 500,
+      success: false,
+      message: 'Something happened',
+    });
+  }
+};
+
+export {
+  studentLogout,
+  getSingleStudent,
+  getStudent,
+  registerStudent,
+  verifyStudentEmail,
+  loginStudent,
+  getAllStudents,
+  resetPassword,
+  forgotPassword,
+  resendEmailVerification,
+};

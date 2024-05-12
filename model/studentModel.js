@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { genderEnum } from '../utils/enumModules.js';
+import { genderEnum, memberRole } from '../utils/enumModules.js';
 
 const studentSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
+  role: { type: String, enum: memberRole, default: memberRole[0] },
 });
 
 const Student = mongoose.model('Student', studentSchema);

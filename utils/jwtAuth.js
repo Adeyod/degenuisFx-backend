@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 const generateToken = async (res, user) => {
   try {
@@ -7,8 +8,17 @@ const generateToken = async (res, user) => {
       email: user.email,
     };
 
+    const payload2 = {
+      userId: user._id,
+      unique: uuidv4(),
+    };
+
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '1800s',
+      expiresIn: '54000000s',
+    });
+
+    const frontToken = jwt.sign(payload2, process.env.JWT_SECRET, {
+      expiresIn: '54000000s',
     });
 
     res.cookie('token', token, {
@@ -17,7 +27,7 @@ const generateToken = async (res, user) => {
       maxAge: 15 * 60 * 60 * 1000,
     });
 
-    return token;
+    return frontToken;
   } catch (error) {
     console.log(error.message);
     return;
@@ -46,6 +56,7 @@ const verifyToken = async (req, res, next) => {
       }
 
       req.user = user;
+
       next();
     });
   } catch (error) {
