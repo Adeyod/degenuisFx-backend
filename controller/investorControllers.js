@@ -353,7 +353,7 @@ const loginInvestor = async (req, res) => {
         message: 'Investor logged in successfully',
         success: true,
         status: 200,
-        investor: others,
+        user: others,
         token: jwtSign,
       });
     }
@@ -396,7 +396,7 @@ const getInvestor = async (req, res) => {
       message: ' Investor fetched successfully',
       success: true,
       status: 200,
-      investor: others,
+      user: others,
     });
   } catch (error) {
     return res.json({
@@ -473,8 +473,8 @@ const forgotPassword = async (req, res) => {
         userId: findUser._id,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/resetPassword/${newToken.userId}/${newToken.token}`;
-      // const link = `${process.env.FRONTEND_URL}/investors/resetPassword/?userId=${newToken.userId}&token=${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/investors/resetPassword/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/investors/resetPassword/?userId=${newToken.userId}&token=${newToken.token}`;
 
       const sendingForgotPassword = await forgotPasswordSender(
         email,
@@ -630,9 +630,9 @@ const resendEmailVerification = async (req, res) => {
     });
 
     if (checkTokenExist) {
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/${checkTokenExist.userId}/${checkTokenExist.token}`;
+      // const link = `${process.env.FRONTEND_URL}/investors/verify-email/${checkTokenExist.userId}/${checkTokenExist.token}`;
 
-      // const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`;
 
       await emailVerification(findUser.email, findUser.firstName, link);
 
@@ -652,9 +652,9 @@ const resendEmailVerification = async (req, res) => {
         userId: findUser._id,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/${newToken.userId}/${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/investors/verify-email/${newToken.userId}/${newToken.token}`;
 
-      // const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(findUser.email, findUser.firstName, link);
 

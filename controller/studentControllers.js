@@ -355,7 +355,7 @@ const loginStudent = async (req, res) => {
         message: `${others.role} fetched successfully`,
         success: true,
         status: 200,
-        student: others,
+        user: others,
         token: jwtSign,
       });
     }
@@ -398,7 +398,7 @@ const getStudent = async (req, res) => {
       message: ' Student fetched successfully',
       success: true,
       status: 200,
-      student: others,
+      user: others,
     });
   } catch (error) {
     return res.json({
@@ -475,8 +475,8 @@ const forgotPassword = async (req, res) => {
         userId: findUser._id,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/student/resetPassword/${newToken.userId}/${newToken.token}`;
-      // const link = `${process.env.FRONTEND_URL}/student/resetPassword/?userId=${newToken.userId}&token=${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/student/resetPassword/${newToken.userId}/${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/student/resetPassword/?userId=${newToken.userId}&token=${newToken.token}`;
 
       const sendingForgotPassword = await forgotPasswordSender(
         email,
@@ -632,9 +632,9 @@ const resendEmailVerification = async (req, res) => {
     });
 
     if (checkTokenExist) {
-      const link = `${process.env.FRONTEND_URL}/student/verify-email/${checkTokenExist.userId}/${checkTokenExist.token}`;
+      // const link = `${process.env.FRONTEND_URL}/student/verify-email/${checkTokenExist.userId}/${checkTokenExist.token}`;
 
-      // const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`;
 
       await emailVerification(findUser.email, findUser.firstName, link);
 
@@ -654,9 +654,9 @@ const resendEmailVerification = async (req, res) => {
         userId: findUser._id,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+      // const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
 
-      // const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`
+      const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(findUser.email, findUser.firstName, link);
 
