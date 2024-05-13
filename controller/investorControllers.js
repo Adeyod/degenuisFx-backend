@@ -317,6 +317,8 @@ const loginInvestor = async (req, res) => {
         return res.json({
           message:
             'Please use the mail sent to your email address to verify your email',
+          success: false,
+          status: 400,
         });
       }
 
@@ -336,6 +338,8 @@ const loginInvestor = async (req, res) => {
       return res.json({
         message:
           'Please use the mail sent to your email address to verify your email',
+        success: false,
+        status: 400,
       });
     } else {
       const { password, ...others } = isInvestor._doc;
