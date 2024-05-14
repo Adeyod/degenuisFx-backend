@@ -6,7 +6,7 @@ const studentTokenSchema = new mongoose.Schema(
     token: { type: String, required: true },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
       expires: 1800,
     },
   },
@@ -19,7 +19,7 @@ const investorTokenSchema = new mongoose.Schema(
     token: { type: String, required: true },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
       expires: 1800,
     },
   },
