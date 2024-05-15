@@ -23,8 +23,11 @@ const generateToken = async (res, user) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'none',
+      // sameSite: 'strict',
       maxAge: 15 * 60 * 60 * 1000,
+      secure: false, // Include this if your app is served over HTTP
+      //secure: true, // Include this if your app is served over HTTPS
     });
 
     return frontToken;
