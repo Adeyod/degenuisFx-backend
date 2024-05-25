@@ -14,18 +14,18 @@ const generateToken = async (res, user) => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '54000000s',
+      expiresIn: '15d',
     });
 
     const frontToken = jwt.sign(payload2, process.env.JWT_SECRET, {
-      expiresIn: '54000000s',
+      expiresIn: '15d',
     });
 
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'none',
       // sameSite: 'strict',
-      maxAge: 15 * 60 * 60 * 1000,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
       // secure: false, // Include this if your app is served over HTTP
       secure: true, // Include this if your app is served over HTTPS
     });

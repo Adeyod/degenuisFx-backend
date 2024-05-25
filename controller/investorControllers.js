@@ -717,27 +717,44 @@ const getSingleInvestor = async (req, res) => {
 // get all investors
 const getAllInvestors = async (req, res) => {
   try {
-    const investors = await Investor.find({
+    let query = Investor.find({
+      role: 'investor',
+    }).select('-password');
+
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * pageSize;
+
+    const count = await Investor.countDocuments({
       role: 'investor',
     });
 
-    if (!investors) {
+    const pages = Math.ceil(count / pageSize);
+    query = query.skip(skip).limit(pageSize);
+    if (page > pages) {
+      return res.json({
+        error: 'Page limit exceeded',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const result = await query;
+
+    if (!result) {
       return res.json({
         error: 'No investor found',
         success: false,
         status: 404,
       });
     } else {
-      const removePassword = investors.map((investor) => {
-        const { password, ...others } = investor._doc;
-        return others;
-      });
-
       return res.json({
         message: 'investors found successfully',
         success: true,
         status: 200,
-        investors: removePassword,
+        investors: result,
+        count,
+        pages,
       });
     }
   } catch (error) {

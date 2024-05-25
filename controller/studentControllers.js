@@ -719,27 +719,45 @@ const getSingleStudent = async (req, res) => {
 // get all students
 const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find({
+    let query = Student.find({
+      role: 'student',
+    }).select('-password');
+
+    const page = req.query.page || 1;
+    const pageSize = req.query.limit || 10;
+    const skip = (page - 1) * pageSize;
+
+    const count = await Student.countDocuments({
       role: 'student',
     });
 
-    if (!students) {
+    const pages = Math.ceil(count / pageSize);
+    query = query.skip(skip).limit(pageSize);
+
+    if (page > pages) {
+      return res.json({
+        error: 'Page limit exceeded',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const result = await query;
+
+    if (!result) {
       return res.json({
         error: 'No student found',
         success: false,
         status: 404,
       });
     } else {
-      const removePassword = students.map((student) => {
-        const { password, ...others } = student._doc;
-        return others;
-      });
-
       return res.json({
         message: 'Students found successfully',
         success: true,
         status: 200,
-        students: removePassword,
+        students: result,
+        pages,
+        count,
       });
     }
   } catch (error) {
