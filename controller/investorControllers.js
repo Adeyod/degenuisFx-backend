@@ -331,7 +331,7 @@ const loginInvestor = async (req, res) => {
         token,
       }).save();
 
-      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId${newToken.userId}&token=${newToken.token}`;
+      const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
       await emailVerification(isInvestor.email, isInvestor.firstName, link);
 
@@ -361,6 +361,137 @@ const loginInvestor = async (req, res) => {
         token: jwtSign,
       });
     }
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      status: 500,
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+const updateInvestor = async (req, res) => {
+  try {
+    const {
+      nokName,
+      nokRelationship,
+      nokAddress,
+      nokPhoneNumber,
+      annualIncomeCurrency,
+      annualIncome,
+      netWorthCurrency,
+      netWorth,
+      sourceOfIncome,
+      // two types of classes. regular and one on one classes
+      // payment of admin charges
+
+      //  THESE ARE NEEDED PROBABLY DURING INVESTMENT
+      // investmentPackage,
+      // investmentMode,
+      // investmentModeOfPayment,
+
+      // THESE ARE NOT NEEDED ANYMORE
+      // bankName,
+      // accountNumber,
+      // accountName,
+      // walletAddressUSDT,
+      // acknowledgement,
+    } = req.body;
+
+    if (
+      !nokName ||
+      !nokRelationship ||
+      !nokAddress ||
+      !nokPhoneNumber ||
+      !annualIncomeCurrency ||
+      !annualIncome ||
+      !netWorthCurrency ||
+      !netWorth ||
+      !sourceOfIncome
+    ) {
+      return res.json({
+        error: 'All fields are required',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const trimmedNokName = nokName.trim();
+    const trimmedNokRelationship = nokRelationship.trim();
+    const trimmedNokAddress = nokAddress.trim();
+
+    if (forbiddenCharsRegex.test(trimmedNokName)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin field',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedNokRelationship)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin relationship',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedNokAddress)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin address field',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const user = req.user.userId;
+    const { investorId } = req.params;
+
+    if (user !== investorId) {
+      return res.json({
+        error: 'Not the authorized user',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const findAndUpdateInvestor = await Investor.findByIdAndUpdate(
+      {
+        _id: investorId,
+      },
+      {
+        nokName: trimmedNokName,
+        nokRelationship: trimmedNokRelationship,
+        nokAddress: trimmedNokAddress,
+        nokPhoneNumber,
+        annualIncomeCurrency,
+        annualIncome,
+        netWorthCurrency,
+        netWorth,
+        sourceOfIncome,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!findAndUpdateInvestor) {
+      return res.json({
+        error: 'Investor not found',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const { password, ...others } = findAndUpdateInvestor._doc;
+
+    return res.json({
+      message: ' Investor updated successfully',
+      success: true,
+      status: 200,
+      user: others,
+    });
   } catch (error) {
     return res.json({
       message: 'Something happened',
@@ -778,4 +909,5 @@ export {
   forgotPassword,
   resetPassword,
   resendEmailVerification,
+  updateInvestor,
 };

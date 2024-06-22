@@ -10,6 +10,7 @@ import {
   forgotPassword,
   resetPassword,
   resendEmailVerification,
+  updateStudent,
 } from '../controller/studentControllers.js';
 import { verifyToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
@@ -17,6 +18,8 @@ import { memberRole } from '../utils/enumModules.js';
 import { limiter } from '../utils/limiter.js';
 
 const router = express.Router();
+
+router.post('/updateStudent/:studentId', verifyToken, updateStudent);
 
 router.post('/register', registerStudent);
 router.post('/login', limiter(5), loginStudent);

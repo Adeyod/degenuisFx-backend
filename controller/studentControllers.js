@@ -373,6 +373,128 @@ const loginStudent = async (req, res) => {
   }
 };
 
+const updateStudent = async (req, res) => {
+  try {
+    const {
+      nokName,
+      nokRelationship,
+      nokAddress,
+      nokPhoneNumber,
+      highestEducationAttained,
+      levelOfForexExperience,
+      legalKnowledgeAndAcceptance,
+      // risk appetite,
+      // infoSource,
+      // referralName,
+      // questionsAndComments,
+      // acknowledgment,
+    } = req.body;
+
+    if (
+      !nokName ||
+      !nokRelationship ||
+      !nokAddress ||
+      !nokPhoneNumber ||
+      !highestEducationAttained ||
+      !levelOfForexExperience ||
+      !legalKnowledgeAndAcceptance
+      // !infoSource ||
+      // !referralName ||
+      // !questionsAndComments ||
+      // !acknowledgment
+    ) {
+      return res.json({
+        error: 'All fields are required...',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const trimmedNokName = nokName.trim();
+    const trimmedNokRelationship = nokRelationship.trim();
+    const trimmedNokAddress = nokAddress.trim();
+
+    if (forbiddenCharsRegex.test(trimmedNokName)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin field',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedNokRelationship)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin relationship',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedNokAddress)) {
+      return res.json({
+        error: 'Invalid character at next-of-kin address field',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const user = req.user.userId;
+
+    const { studentId } = req.params;
+
+    if (user !== studentId) {
+      return res.json({
+        error: 'Not the authorized user',
+      });
+    }
+
+    const findAndUpdateStudent = await Student.findByIdAndUpdate(
+      {
+        _id: studentId,
+      },
+      {
+        nokName: trimmedNokName,
+        nokRelationship: trimmedNokRelationship,
+        nokAddress: trimmedNokAddress,
+        nokPhoneNumber,
+        highestEducationAttained,
+        levelOfForexExperience,
+        legalKnowledgeAndAcceptance,
+        // infoSource,
+        // referralName,
+        // questionsAndComments,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!findAndUpdateStudent) {
+      return res.json({
+        error: 'unable to update student',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const { password, ...others } = findAndUpdateStudent._doc;
+
+    return res.json({
+      message: `${others.role} updated successfully`,
+      success: true,
+      status: 200,
+      user: others,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      status: 500,
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
 const getStudent = async (req, res) => {
   try {
     const user = req.user.userId;
@@ -771,6 +893,7 @@ const getAllStudents = async (req, res) => {
 };
 
 export {
+  updateStudent,
   studentLogout,
   getSingleStudent,
   getStudent,

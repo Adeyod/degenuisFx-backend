@@ -15,6 +15,21 @@ const investorSchema = new mongoose.Schema({
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   role: { type: String, enum: memberRole, default: memberRole[1] },
+
+  // added for updating investors
+  nokName: { type: String },
+  nokRelationship: { type: String },
+  nokAddress: { type: String },
+  nokPhoneNumber: { type: String },
+  annualIncomeCurrency: { type: String },
+  annualIncome: { type: Number },
+  netWorthCurrency: { type: String },
+  netWorth: { type: Number },
+  sourceOfIncome: { type: String },
+  // bankName: { type: String },
+  // accountNumber: { type: String },
+  // accountName: { type: String },
+  // walletAddress: { type: String },
 });
 
 const Investor = mongoose.model('Investor', investorSchema);
