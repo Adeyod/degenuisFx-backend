@@ -11,6 +11,8 @@ import {
   resetPassword,
   resendEmailVerification,
   updateInvestor,
+  getInvestorsBySearch,
+  invest,
 } from '../controller/investorControllers.js';
 import { verifyToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
@@ -35,6 +37,8 @@ router.get(
   getSingleInvestor
 );
 router.get('/getAllInvestors', verifyToken, permission, getAllInvestors);
+router.get('/getInvestorsBySearch', getInvestorsBySearch);
+router.post('/invest', invest);
 router.get('/logout', investorLogout);
 
 export default router;

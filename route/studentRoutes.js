@@ -11,6 +11,8 @@ import {
   resetPassword,
   resendEmailVerification,
   updateStudent,
+  getStudentsBySearch,
+  subscribeToCourse,
 } from '../controller/studentControllers.js';
 import { verifyToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
@@ -35,6 +37,8 @@ router.get(
   getSingleStudent
 );
 router.get('/getAllStudents', verifyToken, permission, getAllStudents);
+router.get('/getStudentsBySearch', getStudentsBySearch);
+router.post('/subscribeToCourse', subscribeToCourse);
 router.get('/logout', studentLogout);
 
 export default router;

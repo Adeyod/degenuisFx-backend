@@ -269,6 +269,8 @@ const verifyInvestorEmail = async (req, res) => {
   }
 };
 
+// i have done update for both student and investors
+
 const loginInvestor = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -846,48 +848,117 @@ const getSingleInvestor = async (req, res) => {
 };
 
 // get all investors
+// const getAllInvestors = async (req, res) => {
+//   try {
+//     let query = Investor.find({
+//       role: 'investor',
+//     }).select('-password');
+
+//     const page = parseInt(req.query.page) || 1;
+//     const pageSize = parseInt(req.query.limit) || 10;
+//     const skip = (page - 1) * pageSize;
+
+//     const count = await Investor.countDocuments({
+//       role: 'investor',
+//     });
+
+//     const pages = Math.ceil(count / pageSize);
+//     query = query.skip(skip).limit(pageSize);
+//     if (page > pages) {
+//       return res.json({
+//         error: 'Page limit exceeded',
+//         status: 404,
+//         success: false,
+//       });
+//     }
+
+//     const result = await query;
+
+//     if (!result) {
+//       return res.json({
+//         error: 'No investor found',
+//         success: false,
+//         status: 404,
+//       });
+//     } else {
+//       return res.json({
+//         message: 'investors found successfully',
+//         success: true,
+//         status: 200,
+//         investors: result,
+//         count,
+//         pages,
+//       });
+//     }
+//   } catch (error) {
+//     return res.json({
+//       error: error.message,
+//       status: 500,
+//       success: false,
+//       message: 'Something happened',
+//     });
+//   }
+// };
+
 const getAllInvestors = async (req, res) => {
   try {
-    let query = Investor.find({
-      role: 'investor',
-    }).select('-password');
+    const { page, limit } = req.query;
 
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * pageSize;
+    let pages;
+    let investors;
+    let count;
 
-    const count = await Investor.countDocuments({
-      role: 'investor',
-    });
-
-    const pages = Math.ceil(count / pageSize);
-    query = query.skip(skip).limit(pageSize);
-    if (page > pages) {
-      return res.json({
-        error: 'Page limit exceeded',
-        status: 404,
-        success: false,
-      });
-    }
-
-    const result = await query;
-
-    if (!result) {
-      return res.json({
-        error: 'No investor found',
-        success: false,
-        status: 404,
-      });
+    if (!page) {
+      investors = await Investor.find({
+        role: 'investor',
+      }).select('-password');
+      count = investors.length;
+      pages = 1;
     } else {
-      return res.json({
-        message: 'investors found successfully',
-        success: true,
-        status: 200,
-        investors: result,
-        count,
-        pages,
-      });
+      const pageNumber = parseInt(page, 10) || 1;
+      const pageSize = parseInt(limit, 10) || 10;
+
+      // Calculate skip value for pagination
+      const skip = (pageNumber - 1) * pageSize;
+
+      // Find the count of total documents
+      count = await Investor.countDocuments({ role: 'investor' });
+
+      pages = Math.ceil(count / pageSize);
+
+      if (pageNumber > pages) {
+        return res.json({
+          error: 'Page limit exceeded',
+          status: 404,
+          success: false,
+        });
+      }
+
+      // Query for fetching investors with pagination
+      investors = await Investor.find({ role: 'investor' })
+        .select('-password')
+        .skip(skip)
+        .limit(pageSize);
+
+      // if no investors found, return an appropriate message
+      if (!investors.length) {
+        return res.json({
+          error: 'No investors found',
+          success: false,
+          status: 404,
+        });
+      }
     }
+
+    // Return fetched investors along with pagination info
+    return res.json({
+      message: 'investors found successfully',
+      success: true,
+      status: 200,
+      investors,
+      count,
+      pages,
+    });
   } catch (error) {
     return res.json({
       error: error.message,
@@ -898,7 +969,74 @@ const getAllInvestors = async (req, res) => {
   }
 };
 
+const getInvestorsBySearch = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.json({
+        error: 'Query parameter must be provided',
+        success: false,
+        status: 400,
+      });
+    }
+
+    const queryWord = query.split(' ').map((word) => new RegExp(word, 'i'));
+
+    console.log(queryWord);
+
+    const investors = await Investor.find({
+      $or: [
+        { firstName: { $in: queryWord } },
+        { lastName: { $in: queryWord } },
+        { middleName: { $in: queryWord } },
+        { stateOfResidence: { $in: queryWord } },
+        { countryOfResidence: { $in: queryWord } },
+        { email: { $in: queryWord } },
+        { address: { $in: queryWord } },
+      ],
+    }).select('-password');
+
+    if (!investors || investors.length === 0 || investors === null) {
+      return res.json({
+        error: 'No matching investors found',
+        status: 404,
+        success: false,
+      });
+    }
+
+    return res.json({
+      count: investors.length,
+      message: 'Searches found',
+      success: true,
+      status: 200,
+      investors,
+    });
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      status: 500,
+      success: false,
+      message: 'Something happened',
+    });
+  }
+};
+
+const invest = async (req, res) => {
+  try {
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      success: false,
+      status: 500,
+      message: 'Something happened',
+    });
+  }
+};
+
 export {
+  invest,
+  getInvestorsBySearch,
   investorLogout,
   getSingleInvestor,
   getAllInvestors,

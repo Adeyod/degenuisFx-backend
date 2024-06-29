@@ -356,7 +356,7 @@ const loginStudent = async (req, res) => {
         });
       }
       return res.json({
-        message: `${others.role} fetched successfully`,
+        message: `${others.role} login successfully`,
         success: true,
         status: 200,
         user: others,
@@ -839,49 +839,118 @@ const getSingleStudent = async (req, res) => {
 };
 
 // get all students
+// const getAllStudents = async (req, res) => {
+//   try {
+//     let query = Student.find({
+//       role: 'student',
+//     }).select('-password');
+
+//     const page = req.query.page || 1;
+//     const pageSize = req.query.limit || 10;
+//     const skip = (page - 1) * pageSize;
+
+//     const count = await Student.countDocuments({
+//       role: 'student',
+//     });
+
+//     const pages = Math.ceil(count / pageSize);
+//     query = query.skip(skip).limit(pageSize);
+
+//     if (page > pages) {
+//       return res.json({
+//         error: 'Page limit exceeded',
+//         status: 404,
+//         success: false,
+//       });
+//     }
+
+//     const result = await query;
+
+//     if (!result) {
+//       return res.json({
+//         error: 'No student found',
+//         success: false,
+//         status: 404,
+//       });
+//     } else {
+//       return res.json({
+//         message: 'Students found successfully',
+//         success: true,
+//         status: 200,
+//         students: result,
+//         pages,
+//         count,
+//       });
+//     }
+//   } catch (error) {
+//     return res.json({
+//       error: error.message,
+//       status: 500,
+//       success: false,
+//       message: 'Something happened',
+//     });
+//   }
+// };
+
 const getAllStudents = async (req, res) => {
   try {
-    let query = Student.find({
-      role: 'student',
-    }).select('-password');
+    const { page, limit } = req.query;
 
-    const page = req.query.page || 1;
-    const pageSize = req.query.limit || 10;
-    const skip = (page - 1) * pageSize;
+    let pages;
+    let students;
+    let count;
 
-    const count = await Student.countDocuments({
-      role: 'student',
-    });
-
-    const pages = Math.ceil(count / pageSize);
-    query = query.skip(skip).limit(pageSize);
-
-    if (page > pages) {
-      return res.json({
-        error: 'Page limit exceeded',
-        status: 404,
-        success: false,
-      });
-    }
-
-    const result = await query;
-
-    if (!result) {
-      return res.json({
-        error: 'No student found',
-        success: false,
-        status: 404,
-      });
+    if (!page) {
+      students = await Student.find({
+        role: 'student',
+      }).select('-password');
+      count = students.length;
+      pages = 1;
     } else {
-      return res.json({
-        message: 'Students found successfully',
-        success: true,
-        status: 200,
-        students: result,
-        pages,
-        count,
-      });
+      const pageNumber = parseInt(page, 10) || 1;
+      const pageSize = parseInt(limit, 10) || 10;
+
+      // Calculate skip value for pagination
+      const skip = (pageNumber - 1) * pageSize;
+
+      // Find the count of total documents
+      count = await Student.countDocuments({ role: 'student' });
+
+      pages = Math.ceil(count / pageSize);
+
+      if (pageNumber > pages) {
+        return res.json({
+          error: 'Page limit exceeded',
+          status: 404,
+          success: false,
+        });
+      }
+
+      // Query for fetching students with pagination
+      students = await Student.find({ role: 'student' })
+        .select('-password')
+        .skip(skip)
+        .limit(pageSize);
+
+      // if no students found, return an appropriate message
+      if (!students.length) {
+        return res.json({
+          error: 'No students found',
+          success: false,
+          status: 404,
+        });
+      }
     }
+
+    // Return fetched students along with pagination info
+    return res.json({
+      message: 'Students found successfully',
+      success: true,
+      status: 200,
+      students,
+      count,
+      pages,
+    });
   } catch (error) {
     return res.json({
       error: error.message,
@@ -892,8 +961,64 @@ const getAllStudents = async (req, res) => {
   }
 };
 
+const getStudentsBySearch = async (req, res) => {
+  try {
+    const { query } = await req.query;
+
+    const queryWord = query.split(' ').map((word) => new RegExp(word, 'i'));
+
+    const students = await Student.find({
+      $or: [
+        { firstName: { $in: queryWord } },
+        { lastName: { $in: queryWord } },
+        { middleName: { $in: queryWord } },
+        { countryOfResidence: { $in: queryWord } },
+        { stateOfResidence: { $in: queryWord } },
+        { address: { $in: queryWord } },
+        { email: { $in: queryWord } },
+      ],
+    }).select('-password');
+
+    if (!students || students.length === 0 || students === null) {
+      return res.json({
+        error: 'No matching students found',
+        status: 404,
+        success: false,
+      });
+    }
+
+    return res.json({
+      count: students.length,
+      message: 'Searches found',
+      status: 200,
+      success: true,
+      students,
+    });
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      success: false,
+      status: 500,
+      message: 'Something happened',
+    });
+  }
+};
+
+const subscribeToCourse = async (req, res) => {
+  try {
+  } catch (error) {
+    return res.json({
+      error: error.message,
+      success: false,
+      status: 500,
+      message: 'Something happened',
+    });
+  }
+};
+
 export {
   updateStudent,
+  subscribeToCourse,
   studentLogout,
   getSingleStudent,
   getStudent,
@@ -904,4 +1029,5 @@ export {
   resetPassword,
   forgotPassword,
   resendEmailVerification,
+  getStudentsBySearch,
 };
