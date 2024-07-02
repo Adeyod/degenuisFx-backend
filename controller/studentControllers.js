@@ -633,19 +633,14 @@ const forgotPassword = async (req, res, next) => {
         next
       );
       console.log('FORGOT PASSWORD:', sendingForgotPassword);
-      // if (!sendingForgotPassword || sendingForgotPassword === undefined) {
-      //   return res.json({
-      //     error: 'Unable to send email. Please try again',
-      //     success: false,
-      //     status: 400,
-      //   });
-      // } else {
-      return res.json({
-        message: 'Password reset link has been sent',
-        success: true,
-        status: 200,
-      });
-      // }
+
+      if (sendingForgotPassword) {
+        return res.json({
+          message: 'Password reset link has been sent',
+          success: true,
+          status: 200,
+        });
+      }
     }
   } catch (error) {
     next(error);
