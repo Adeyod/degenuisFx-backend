@@ -51,6 +51,7 @@ const emailVerification = async (email, firstName, link) => {
     });
   } catch (error) {
     console.log(error.message);
+    next(error);
   }
 };
 
@@ -69,6 +70,7 @@ const forgotPasswordSender = async (email, link, firstName) => {
     return info;
   } catch (error) {
     console.log(error);
+    next(error);
   }
 };
 
