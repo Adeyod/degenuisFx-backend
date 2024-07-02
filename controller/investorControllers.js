@@ -10,7 +10,7 @@ import { generateToken } from '../utils/jwtAuth.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
-const registerInvestor = async (req, res) => {
+const registerInvestor = async (req, res, next) => {
   try {
     const {
       firstName,
@@ -173,7 +173,12 @@ const registerInvestor = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(newInvestor.email, newInvestor.firstName, link);
+      await emailVerification(
+        newInvestor.email,
+        newInvestor.firstName,
+        link,
+        next
+      );
 
       return res.json({
         message:
@@ -202,7 +207,12 @@ const registerInvestor = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(newInvestor.email, newInvestor.firstName, link);
+      await emailVerification(
+        newInvestor.email,
+        newInvestor.firstName,
+        link,
+        next
+      );
 
       return res.json({
         message:
@@ -211,11 +221,12 @@ const registerInvestor = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   status: 500,
+    //   success: false,
+    // });
   }
 };
 
@@ -271,7 +282,7 @@ const verifyInvestorEmail = async (req, res) => {
 
 // i have done update for both student and investors
 
-const loginInvestor = async (req, res) => {
+const loginInvestor = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -314,7 +325,12 @@ const loginInvestor = async (req, res) => {
       if (isValidToken) {
         const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
 
-        await emailVerification(isInvestor.email, isInvestor.firstName, link);
+        await emailVerification(
+          isInvestor.email,
+          isInvestor.firstName,
+          link,
+          next
+        );
 
         return res.json({
           message:
@@ -335,7 +351,12 @@ const loginInvestor = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(isInvestor.email, isInvestor.firstName, link);
+      await emailVerification(
+        isInvestor.email,
+        isInvestor.firstName,
+        link,
+        next
+      );
 
       return res.json({
         message:
@@ -364,12 +385,13 @@ const loginInvestor = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    next(error);
+    // return res.json({
+    //   message: 'Something happened',
+    //   status: 500,
+    //   success: false,
+    //   error: error.message,
+    // });
   }
 };
 
@@ -576,7 +598,7 @@ const investorLogout = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -621,7 +643,8 @@ const forgotPassword = async (req, res) => {
       const sendingForgotPassword = await forgotPasswordSender(
         email,
         link,
-        findUser.firstName
+        findUser.firstName,
+        next
       );
       if (!sendingForgotPassword.response) {
         return res.json({
@@ -638,12 +661,13 @@ const forgotPassword = async (req, res) => {
       }
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   message: 'Something happened',
+    //   success: false,
+    //   status: 500,
+    // });
   }
 };
 
@@ -727,7 +751,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-const resendEmailVerification = async (req, res) => {
+const resendEmailVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -776,7 +800,7 @@ const resendEmailVerification = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`;
 
-      await emailVerification(findUser.email, findUser.firstName, link);
+      await emailVerification(findUser.email, findUser.firstName, link, next);
 
       return res.json({
         message:
@@ -798,7 +822,7 @@ const resendEmailVerification = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/investors/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(findUser.email, findUser.firstName, link);
+      await emailVerification(findUser.email, findUser.firstName, link, next);
 
       return res.json({
         message:
@@ -808,12 +832,13 @@ const resendEmailVerification = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   message: 'Something happened',
+    //   success: false,
+    //   status: 500,
+    // });
   }
 };
 

@@ -36,7 +36,7 @@ const passwordResetTemplatePath = join(
 
 const passwordResetTemplate = readFileSync(passwordResetTemplatePath, 'utf8');
 
-const emailVerification = async (email, firstName, link) => {
+const emailVerification = async (email, firstName, link, next) => {
   try {
     const emailVerificationContent = emailVerificationTemplate
       .replace('{{link}}', link)
@@ -49,13 +49,17 @@ const emailVerification = async (email, firstName, link) => {
       sender: process.env.USER,
       html: `Click this link ${link} to verify your email`,
     });
+
+    console.log('Email sent:', info.messageId);
+
+    return info;
   } catch (error) {
     console.log(error.message);
     next(error);
   }
 };
 
-const forgotPasswordSender = async (email, link, firstName) => {
+const forgotPasswordSender = async (email, link, firstName, next) => {
   try {
     const forgotPasswordContent = passwordResetTemplate
       .replace('{{link}}', link)
@@ -67,6 +71,8 @@ const forgotPasswordSender = async (email, link, firstName) => {
       sender: process.env.USER,
       html: `Click this link ${link} to reset your password`,
     });
+
+    console.log('reset password sent:', info.messageId);
     return info;
   } catch (error) {
     console.log(error);

@@ -10,7 +10,7 @@ import { generateToken } from '../utils/jwtAuth.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
-const registerStudent = async (req, res) => {
+const registerStudent = async (req, res, next) => {
   try {
     const {
       firstName,
@@ -173,7 +173,12 @@ const registerStudent = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(newStudent.email, newStudent.firstName, link);
+      await emailVerification(
+        newStudent.email,
+        newStudent.firstName,
+        link,
+        next
+      );
 
       return res.json({
         message:
@@ -204,7 +209,12 @@ const registerStudent = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(newStudent.email, newStudent.firstName, link);
+      await emailVerification(
+        newStudent.email,
+        newStudent.firstName,
+        link,
+        next
+      );
 
       return res.json({
         message:
@@ -213,11 +223,12 @@ const registerStudent = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   status: 500,
+    //   success: false,
+    // });
   }
 };
 
@@ -271,7 +282,7 @@ const verifyStudentEmail = async (req, res) => {
   }
 };
 
-const loginStudent = async (req, res) => {
+const loginStudent = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -314,7 +325,12 @@ const loginStudent = async (req, res) => {
       if (isValidToken) {
         const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
 
-        await emailVerification(isStudent.email, isStudent.firstName, link);
+        await emailVerification(
+          isStudent.email,
+          isStudent.firstName,
+          link,
+          next
+        );
 
         return res.json({
           message:
@@ -335,7 +351,7 @@ const loginStudent = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(isStudent.email, isStudent.firstName, link);
+      await emailVerification(isStudent.email, isStudent.firstName, link, next);
 
       return res.json({
         message:
@@ -364,12 +380,13 @@ const loginStudent = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    next(error);
+    // return res.json({
+    //   message: 'Something happened',
+    //   status: 500,
+    //   success: false,
+    //   error: error.message,
+    // });
   }
 };
 
@@ -567,7 +584,7 @@ const studentLogout = async (req, res) => {
   }
 };
 
-const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -612,7 +629,8 @@ const forgotPassword = async (req, res) => {
       const sendingForgotPassword = await forgotPasswordSender(
         email,
         link,
-        findUser.firstName
+        findUser.firstName,
+        next
       );
       console.log('FORGOT PASSWORD:', sendingForgotPassword);
       if (!sendingForgotPassword.response) {
@@ -630,12 +648,13 @@ const forgotPassword = async (req, res) => {
       }
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   message: 'Something happened',
+    //   success: false,
+    //   status: 500,
+    // });
   }
 };
 
@@ -719,7 +738,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-const resendEmailVerification = async (req, res) => {
+const resendEmailVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -768,7 +787,7 @@ const resendEmailVerification = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${checkTokenExist.userId}&token=${checkTokenExist.token}`;
 
-      await emailVerification(findUser.email, findUser.firstName, link);
+      await emailVerification(findUser.email, findUser.firstName, link, next);
 
       return res.json({
         message:
@@ -790,7 +809,7 @@ const resendEmailVerification = async (req, res) => {
 
       const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-      await emailVerification(findUser.email, findUser.firstName, link);
+      await emailVerification(findUser.email, findUser.firstName, link, next);
 
       return res.json({
         message:
@@ -800,12 +819,13 @@ const resendEmailVerification = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    next(error);
+    // return res.json({
+    //   error: error.message,
+    //   message: 'Something happened',
+    //   success: false,
+    //   status: 500,
+    // });
   }
 };
 
