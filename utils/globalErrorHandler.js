@@ -1,5 +1,5 @@
 const globalErrorHandler = (err, req, res, next) => {
-  if (err.code === 'EAUTH') {
+  if (err.code === 'EAUTH' || err.responseCode === 535) {
     // Handle authentication failure errors (EAUTH)
     return res.status(500).json({
       message: 'Authentication failed. Please check your email credentials.',

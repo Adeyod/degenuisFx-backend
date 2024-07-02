@@ -633,7 +633,7 @@ const forgotPassword = async (req, res, next) => {
         next
       );
       console.log('FORGOT PASSWORD:', sendingForgotPassword);
-      if (!sendingForgotPassword.response) {
+      if (!sendingForgotPassword || sendingForgotPassword === undefined) {
         return res.json({
           error: 'Unable to send email. Please try again',
           success: false,
