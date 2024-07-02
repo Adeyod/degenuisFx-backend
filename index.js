@@ -6,6 +6,7 @@ import studentRoutes from './route/studentRoutes.js';
 import investorRoutes from './route/investorRoutes.js';
 import otherRoutes from './route/otherRoutes.js';
 import helmet from 'helmet';
+import globalErrorHandler from './utils/globalErrorHandler.js';
 
 const app = express();
 
@@ -29,20 +30,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/investors', investorRoutes);
 app.use('/api/v2', otherRoutes);
 
-// app.use((err, req, res, next) => {
-//   if (err.status === 429) {
-//     // Handle rate limit errors
-//     return res.json({
-//       message: 'Too many requests, please try again later.',
-//       status: 429,
-//       success: false,
-//     });
-//   }
-//   // Handle other errors
-//   res
-//     .status(err.status || 500)
-//     .json({ message: err.message || 'Internal Server Error' });
-// });
+app.use(globalErrorHandler);
 
 const port = process.env.PORT || 4444;
 

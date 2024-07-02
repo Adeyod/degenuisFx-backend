@@ -614,6 +614,7 @@ const forgotPassword = async (req, res) => {
         link,
         findUser.firstName
       );
+      console.log('FORGOT PASSWORD:', sendingForgotPassword);
       if (!sendingForgotPassword.response) {
         return res.json({
           error: 'Unable to send email. Please try again',
