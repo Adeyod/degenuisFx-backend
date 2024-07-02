@@ -24,7 +24,8 @@ const router = express.Router();
 router.post('/updateStudent/:studentId', verifyToken, updateStudent);
 
 router.post('/register', registerStudent);
-router.post('/login', limiter(5), loginStudent);
+// router.post('/login', limiter(5), loginStudent);
+router.post('/login', loginStudent);
 router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword/:userId/:token', resetPassword);
 router.post('/resendEmailVerification', resendEmailVerification);

@@ -385,6 +385,11 @@ const updateInvestor = async (req, res) => {
       netWorthCurrency,
       netWorth,
       sourceOfIncome,
+
+      phoneNumber,
+      countryOfResidence,
+      stateOfResidence,
+      address,
       // two types of classes. regular and one on one classes
       // payment of admin charges
 

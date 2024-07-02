@@ -14,6 +14,7 @@ const investorSchema = new mongoose.Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
+  isUpdated: { type: Boolean, default: false },
   role: { type: String, enum: memberRole, default: memberRole[1] },
 
   // added for updating investors

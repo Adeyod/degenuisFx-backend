@@ -383,6 +383,11 @@ const updateStudent = async (req, res) => {
       highestEducationAttained,
       levelOfForexExperience,
       legalKnowledgeAndAcceptance,
+
+      phoneNumber,
+      countryOfResidence,
+      stateOfResidence,
+      address,
       // risk appetite,
       // infoSource,
       // referralName,

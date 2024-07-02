@@ -24,7 +24,8 @@ const router = express.Router();
 router.post('/updateInvestor/:investorId', verifyToken, updateInvestor);
 
 router.post('/register', registerInvestor);
-router.post('/login', limiter(5), loginInvestor);
+router.post('/login', loginInvestor);
+// router.post('/login', limiter(5), loginInvestor);
 router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword/:userId/:token', resetPassword);
 router.post('/resendEmailVerification', resendEmailVerification);
