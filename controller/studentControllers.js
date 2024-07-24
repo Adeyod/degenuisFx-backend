@@ -403,10 +403,10 @@ const updateStudent = async (req, res) => {
       preferredTrainingDay,
       infoSource,
 
-      // countryOfResidence,
-      // stateOfResidence,
-      // address,
-      // phoneNumber,
+      countryOfResidence,
+      stateOfResidence,
+      address,
+      phoneNumber,
 
       // legalKnowledgeAndAcceptance,
       // highestEducationAttained,
@@ -420,12 +420,12 @@ const updateStudent = async (req, res) => {
       !nokName ||
       !nokRelationship ||
       !nokAddress ||
-      // !address ||
+      !address ||
       !nokPhoneNumber ||
-      // !phoneNumber ||
+      !phoneNumber ||
       !levelOfForexExperience ||
-      // !stateOfResidence ||
-      // !countryOfResidence ||
+      !stateOfResidence ||
+      !countryOfResidence ||
       !preferredTrainingDay ||
       !infoSource
       // !referralName ||
@@ -442,9 +442,33 @@ const updateStudent = async (req, res) => {
     const trimmedNokName = nokName.trim();
     const trimmedNokRelationship = nokRelationship.trim();
     const trimmedNokAddress = nokAddress.trim();
-    // const trimmedAddress = address.trim();
-    // const trimmedCountryOfResidence = countryOfResidence.trim();
-    // const trimmedStateOfResidence = stateOfResidence.trim();
+    const trimmedAddress = address.trim();
+    const trimmedCountryOfResidence = countryOfResidence.trim();
+    const trimmedStateOfResidence = stateOfResidence.trim();
+
+    if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
+      return res.json({
+        error: 'Invalid character at state of residence',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
+      return res.json({
+        error: 'Invalid character at country of residence field',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedAddress)) {
+      return res.json({
+        error: 'Invalid character at address field',
+        status: 400,
+        success: false,
+      });
+    }
 
     if (forbiddenCharsRegex.test(trimmedNokName)) {
       return res.json({
@@ -492,6 +516,10 @@ const updateStudent = async (req, res) => {
         levelOfForexExperience,
         preferredTrainingDay,
         infoSource,
+        address: trimmedAddress,
+        countryOfResidence: trimmedCountryOfResidence,
+        stateOfResidence: trimmedStateOfResidence,
+        phoneNumber,
 
         isUpdated: true,
 
