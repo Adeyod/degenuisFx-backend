@@ -12,6 +12,7 @@ const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
 const registerStudent = async (req, res, next) => {
   try {
+    console.log(req.body);
     const {
       firstName,
       lastName,
@@ -284,6 +285,7 @@ const verifyStudentEmail = async (req, res) => {
 
 const loginStudent = async (req, res, next) => {
   try {
+    console.log(req.body);
     const { email, password } = req.body;
     if (!email || !password) {
       return res.json({
@@ -397,16 +399,18 @@ const updateStudent = async (req, res) => {
       nokRelationship,
       nokAddress,
       nokPhoneNumber,
-      highestEducationAttained,
       levelOfForexExperience,
-      legalKnowledgeAndAcceptance,
+      preferredTrainingDay,
+      infoSource,
 
-      phoneNumber,
-      countryOfResidence,
-      stateOfResidence,
-      address,
+      // countryOfResidence,
+      // stateOfResidence,
+      // address,
+      // phoneNumber,
+
+      // legalKnowledgeAndAcceptance,
+      // highestEducationAttained,
       // risk appetite,
-      // infoSource,
       // referralName,
       // questionsAndComments,
       // acknowledgment,
@@ -416,11 +420,14 @@ const updateStudent = async (req, res) => {
       !nokName ||
       !nokRelationship ||
       !nokAddress ||
+      // !address ||
       !nokPhoneNumber ||
-      !highestEducationAttained ||
+      // !phoneNumber ||
       !levelOfForexExperience ||
-      !legalKnowledgeAndAcceptance
-      // !infoSource ||
+      // !stateOfResidence ||
+      // !countryOfResidence ||
+      !preferredTrainingDay ||
+      !infoSource
       // !referralName ||
       // !questionsAndComments ||
       // !acknowledgment
@@ -435,6 +442,9 @@ const updateStudent = async (req, res) => {
     const trimmedNokName = nokName.trim();
     const trimmedNokRelationship = nokRelationship.trim();
     const trimmedNokAddress = nokAddress.trim();
+    // const trimmedAddress = address.trim();
+    // const trimmedCountryOfResidence = countryOfResidence.trim();
+    // const trimmedStateOfResidence = stateOfResidence.trim();
 
     if (forbiddenCharsRegex.test(trimmedNokName)) {
       return res.json({
@@ -479,10 +489,13 @@ const updateStudent = async (req, res) => {
         nokRelationship: trimmedNokRelationship,
         nokAddress: trimmedNokAddress,
         nokPhoneNumber,
-        highestEducationAttained,
         levelOfForexExperience,
-        legalKnowledgeAndAcceptance,
-        // infoSource,
+        preferredTrainingDay,
+        infoSource,
+
+        isUpdated: true,
+
+        // legalKnowledgeAndAcceptance,
         // referralName,
         // questionsAndComments,
       },
@@ -560,7 +573,8 @@ const getStudent = async (req, res) => {
 
 const studentLogout = async (req, res) => {
   try {
-    const userLogout = await res.cookie('token', '', { maxAge: 1 });
+    // const userLogout2 = await res.cookie('token', '', { maxAge: 1 });
+    const userLogout = await res.clearCookie('token');
     if (!userLogout) {
       return res.json({
         error: 'unable to log out',

@@ -499,6 +499,7 @@ const updateInvestor = async (req, res) => {
         netWorthCurrency,
         netWorth,
         sourceOfIncome,
+        isUpdated: true,
       },
       {
         new: true,
@@ -574,7 +575,7 @@ const getInvestor = async (req, res) => {
 
 const investorLogout = async (req, res) => {
   try {
-    const userLogout = res.cookie('token', '', { maxAge: 1 });
+    const userLogout = await res.clearCookie('token');
     if (!userLogout) {
       return res.json({
         error: 'Unable to log investor out. Please try again',
