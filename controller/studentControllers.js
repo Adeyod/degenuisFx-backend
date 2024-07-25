@@ -395,14 +395,9 @@ const loginStudent = async (req, res, next) => {
 const updateStudent = async (req, res) => {
   try {
     const {
-      nokName,
-      nokRelationship,
-      nokAddress,
-      nokPhoneNumber,
       levelOfForexExperience,
-      preferredTrainingDay,
+      preferredTrainingDays,
       infoSource,
-
       countryOfResidence,
       stateOfResidence,
       address,
@@ -417,17 +412,18 @@ const updateStudent = async (req, res) => {
     } = req.body;
 
     if (
-      !nokName ||
-      !nokRelationship ||
-      !nokAddress ||
       !address ||
-      !nokPhoneNumber ||
-      !phoneNumber ||
-      !levelOfForexExperience ||
-      !stateOfResidence ||
       !countryOfResidence ||
-      !preferredTrainingDay ||
-      !infoSource
+      !levelOfForexExperience ||
+      !infoSource ||
+      !phoneNumber ||
+      !stateOfResidence ||
+      !preferredTrainingDays
+
+      // !nokName ||
+      // !nokRelationship ||
+      // !nokAddress ||
+      // !nokPhoneNumber ||
       // !referralName ||
       // !questionsAndComments ||
       // !acknowledgment
@@ -439,12 +435,10 @@ const updateStudent = async (req, res) => {
       });
     }
 
-    const trimmedNokName = nokName.trim();
-    const trimmedNokRelationship = nokRelationship.trim();
-    const trimmedNokAddress = nokAddress.trim();
     const trimmedAddress = address.trim();
     const trimmedCountryOfResidence = countryOfResidence.trim();
     const trimmedStateOfResidence = stateOfResidence.trim();
+    const trimmedPreferredTrainingDays = preferredTrainingDays.trim();
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
       return res.json({
@@ -470,27 +464,11 @@ const updateStudent = async (req, res) => {
       });
     }
 
-    if (forbiddenCharsRegex.test(trimmedNokName)) {
+    if (forbiddenCharsRegex.test(trimmedPreferredTrainingDays)) {
       return res.json({
-        error: 'Invalid character at next-of-kin field',
+        error: 'Invalid character at preferred training days field',
         status: 400,
         success: false,
-      });
-    }
-
-    if (forbiddenCharsRegex.test(trimmedNokRelationship)) {
-      return res.json({
-        error: 'Invalid character at next-of-kin relationship',
-        status: 400,
-        success: false,
-      });
-    }
-
-    if (forbiddenCharsRegex.test(trimmedNokAddress)) {
-      return res.json({
-        error: 'Invalid character at next-of-kin address field',
-        success: false,
-        status: 400,
       });
     }
 
@@ -509,12 +487,8 @@ const updateStudent = async (req, res) => {
         _id: studentId,
       },
       {
-        nokName: trimmedNokName,
-        nokRelationship: trimmedNokRelationship,
-        nokAddress: trimmedNokAddress,
-        nokPhoneNumber,
         levelOfForexExperience,
-        preferredTrainingDay,
+        preferredTrainingDays: trimmedPreferredTrainingDays,
         infoSource,
         address: trimmedAddress,
         countryOfResidence: trimmedCountryOfResidence,
@@ -543,7 +517,7 @@ const updateStudent = async (req, res) => {
     const { password, ...others } = findAndUpdateStudent._doc;
 
     return res.json({
-      message: `${others.role} updated successfully`,
+      message: `${others.firstName}'s account updated successfully`,
       success: true,
       status: 200,
       user: others,

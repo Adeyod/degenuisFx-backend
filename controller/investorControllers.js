@@ -398,20 +398,21 @@ const loginInvestor = async (req, res, next) => {
 const updateInvestor = async (req, res) => {
   try {
     const {
-      nokName,
-      nokRelationship,
-      nokAddress,
-      nokPhoneNumber,
-      annualIncomeCurrency,
-      annualIncome,
-      netWorthCurrency,
-      netWorth,
-      sourceOfIncome,
-
-      phoneNumber,
-      countryOfResidence,
-      stateOfResidence,
       address,
+      countryOfResidence,
+      nokAddress,
+      nokName,
+      nokPhoneNumber,
+      nokRelationship,
+      phoneNumber,
+      stateOfResidence,
+
+      // annualIncomeCurrency,
+      // annualIncome,
+      // netWorthCurrency,
+      // netWorth,
+      // sourceOfIncome,
+
       // two types of classes. regular and one on one classes
       // payment of admin charges
 
@@ -433,11 +434,10 @@ const updateInvestor = async (req, res) => {
       !nokRelationship ||
       !nokAddress ||
       !nokPhoneNumber ||
-      !annualIncomeCurrency ||
-      !annualIncome ||
-      !netWorthCurrency ||
-      !netWorth ||
-      !sourceOfIncome
+      !address ||
+      !countryOfResidence ||
+      !phoneNumber ||
+      !stateOfResidence
     ) {
       return res.json({
         error: 'All fields are required',
@@ -448,11 +448,32 @@ const updateInvestor = async (req, res) => {
 
     const trimmedNokName = nokName.trim();
     const trimmedNokRelationship = nokRelationship.trim();
-    const trimmedNokAddress = nokAddress.trim();
+    const trimmedNokAddress = address.trim();
+    const trimmedAddress = nokAddress.trim();
+    const trimmedCountryOfResidence = countryOfResidence.trim();
+    const trimmedStateOfResidence = stateOfResidence.trim();
 
     if (forbiddenCharsRegex.test(trimmedNokName)) {
       return res.json({
         error: 'Invalid character at next-of-kin field',
+        status: 400,
+        success: false,
+      });
+    }
+
+    // 0-9+
+
+    if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
+      return res.json({
+        error: 'Invalid character at state of residence field',
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
+      return res.json({
+        error: 'Invalid character at country of residence field',
         status: 400,
         success: false,
       });
@@ -463,6 +484,14 @@ const updateInvestor = async (req, res) => {
         error: 'Invalid character at next-of-kin relationship',
         status: 400,
         success: false,
+      });
+    }
+
+    if (forbiddenCharsRegex.test(trimmedAddress)) {
+      return res.json({
+        error: 'Invalid character at address field',
+        success: false,
+        status: 400,
       });
     }
 
@@ -490,15 +519,15 @@ const updateInvestor = async (req, res) => {
         _id: investorId,
       },
       {
+        address: trimmedAddress,
+        countryOfResidence: trimmedCountryOfResidence,
+        stateOfResidence: trimmedStateOfResidence,
         nokName: trimmedNokName,
         nokRelationship: trimmedNokRelationship,
         nokAddress: trimmedNokAddress,
         nokPhoneNumber,
-        annualIncomeCurrency,
-        annualIncome,
-        netWorthCurrency,
-        netWorth,
-        sourceOfIncome,
+        phoneNumber,
+
         isUpdated: true,
       },
       {
