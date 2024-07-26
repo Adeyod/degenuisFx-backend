@@ -546,7 +546,7 @@ const updateInvestor = async (req, res) => {
     const { password, ...others } = findAndUpdateInvestor._doc;
 
     return res.json({
-      message: ' Investor updated successfully',
+      message: 'Investor profile updated successfully',
       success: true,
       status: 200,
       user: others,

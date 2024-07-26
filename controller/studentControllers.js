@@ -517,7 +517,7 @@ const updateStudent = async (req, res) => {
     const { password, ...others } = findAndUpdateStudent._doc;
 
     return res.json({
-      message: `${others.firstName}'s account updated successfully`,
+      message: `Student profile updated successfully`,
       success: true,
       status: 200,
       user: others,
