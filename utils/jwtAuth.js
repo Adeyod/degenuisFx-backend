@@ -39,7 +39,11 @@ const generateToken = async (res, user) => {
 
 const verifyToken = async (req, res, next) => {
   try {
+    console.log('Cookies: ', req.cookies);
+    console.log('Headers: ', req.headers);
+    console.log('CONFRIM TOKEN:', req.cookies.token);
     const token = req.cookies.token;
+
     if (!token) {
       return res.json({
         message: 'Please login to continue',
