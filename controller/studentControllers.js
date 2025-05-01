@@ -576,7 +576,7 @@ const getStudent = async (req, res) => {
 const studentLogout = async (req, res) => {
   try {
     // const userLogout2 = await res.cookie('token', '', { maxAge: 1 });
-    const userLogout = await res.clearCookie('token');
+    const userLogout = await res.clearCookie('token', { httpOnly: true });
     if (!userLogout) {
       return res.json({
         error: 'unable to log out',

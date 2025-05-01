@@ -604,7 +604,7 @@ const getInvestor = async (req, res) => {
 
 const investorLogout = async (req, res) => {
   try {
-    const userLogout = await res.clearCookie('token');
+    const userLogout = await res.clearCookie('token', { httpOnly: true });
     if (!userLogout) {
       return res.json({
         error: 'Unable to log investor out. Please try again',
