@@ -20,7 +20,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: [
-      'https://notdegeniusfxacademy.netlify.app',
+      'https://degeniusfxacademy.netlify.app',
       // 'http://localhost:5173'
     ],
     credentials: true,
