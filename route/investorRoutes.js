@@ -34,10 +34,15 @@ router.get('/getInvestor/:investorId', verifyToken, getInvestor);
 router.get(
   '/getSingleInvestor/:investorId',
   verifyToken,
-  permission,
+  permission(['admin']),
   getSingleInvestor
 );
-router.get('/getAllInvestors', verifyToken, permission, getAllInvestors);
+router.get(
+  '/getAllInvestors',
+  verifyToken,
+  permission(['admin']),
+  getAllInvestors
+);
 router.get('/getInvestorsBySearch', getInvestorsBySearch);
 router.post('/invest', invest);
 router.get('/logout', investorLogout);

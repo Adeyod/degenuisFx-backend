@@ -5,11 +5,13 @@ const generateToken = async (res, user) => {
   try {
     const payload = {
       userId: user._id,
+      userRole: user.role,
       email: user.email,
     };
 
     const payload2 = {
       userId: user._id,
+      userRole: user.role,
       unique: uuidv4(),
     };
 
@@ -40,9 +42,6 @@ const generateToken = async (res, user) => {
 
 const verifyToken = async (req, res, next) => {
   try {
-    console.log('Cookies: ', req.cookies);
-    console.log('Headers: ', req.headers);
-    console.log('CONFRIM TOKEN:', req.cookies.token);
     const token = req.cookies.token;
 
     if (!token) {

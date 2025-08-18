@@ -37,7 +37,12 @@ router.get(
   permission,
   getSingleStudent
 );
-router.get('/getAllStudents', verifyToken, permission, getAllStudents);
+router.get(
+  '/getAllStudents',
+  verifyToken,
+  permission(['admin']),
+  getAllStudents
+);
 router.get('/getStudentsBySearch', getStudentsBySearch);
 router.post('/subscribeToCourse', subscribeToCourse);
 router.get('/logout', studentLogout);

@@ -50,8 +50,6 @@ const emailVerification = async (email, firstName, link, next) => {
       html: `Click this link ${link} to verify your email`,
     });
 
-    console.log('Email sent:', info.messageId);
-
     return info;
   } catch (error) {
     console.log(error.message);
@@ -72,7 +70,6 @@ const forgotPasswordSender = async (email, link, firstName, next) => {
       html: `Click this link ${link} to reset your password`,
     });
 
-    console.log('reset password sent:', info.messageId);
     return info;
   } catch (error) {
     console.log(error);

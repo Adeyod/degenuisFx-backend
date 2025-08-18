@@ -2,11 +2,13 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import DBConfig from './DBConfig/DBConfig.js';
 import cors from 'cors';
-import studentRoutes from './route/studentRoutes.js';
-import investorRoutes from './route/investorRoutes.js';
-import otherRoutes from './route/otherRoutes.js';
 import helmet from 'helmet';
 import globalErrorHandler from './utils/globalErrorHandler.js';
+
+import studentRoutes from './route/studentRoutes.js';
+import trainingPaymentRoutes from './route/trainingPaymentRoutes.js';
+import investorRoutes from './route/investorRoutes.js';
+import otherRoutes from './route/otherRoutes.js';
 
 const app = express();
 
@@ -33,6 +35,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/student', studentRoutes);
+app.use('/api/payments', trainingPaymentRoutes);
 app.use('/api/investors', investorRoutes);
 app.use('/api/v2', otherRoutes);
 
