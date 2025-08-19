@@ -14,14 +14,14 @@ import {
   getStudentsBySearch,
   subscribeToCourse,
 } from '../controller/studentControllers.js';
-import { verifyToken } from '../utils/jwtAuth.js';
+import { verifyAccessToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
 import { memberRole } from '../utils/enumModules.js';
 import { limiter } from '../utils/limiter.js';
 
 const router = express.Router();
 
-router.post('/updateStudent/:studentId', verifyToken, updateStudent);
+router.post('/updateStudent/:studentId', verifyAccessToken, updateStudent);
 
 router.post('/register', registerStudent);
 // router.post('/login', limiter(5), loginStudent);
@@ -30,16 +30,16 @@ router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword/:userId/:token', resetPassword);
 router.post('/resendEmailVerification', resendEmailVerification);
 router.post('/verify-email/:userId/:token', verifyStudentEmail);
-router.get('/getStudent/:studentId', verifyToken, getStudent);
+router.get('/getStudent/:studentId', verifyAccessToken, getStudent);
 router.get(
   '/getSingleStudent/:studentId',
-  verifyToken,
-  permission,
+  verifyAccessToken,
+  permission(['admin']),
   getSingleStudent
 );
 router.get(
   '/getAllStudents',
-  verifyToken,
+  verifyAccessToken,
   permission(['admin']),
   getAllStudents
 );

@@ -6,7 +6,15 @@ import {
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { StudentToken } from '../model/tokenModel.js';
-import { generateToken } from '../utils/jwtAuth.js';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  jwtDecodeRefreshToken,
+} from '../utils/jwtAuth.js';
+import { RefreshToken } from '../model/refreshToken.js';
+import BlackListedToken from '../model/blackListedmodel.js';
+import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
+import jwt from 'jsonwebtoken';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -299,6 +307,7 @@ const loginStudent = async (req, res, next) => {
       email,
     });
 
+    console.log('1');
     if (!isStudent) {
       return res.json({
         error: 'Invalid credentials',
@@ -323,6 +332,7 @@ const loginStudent = async (req, res, next) => {
       const isValidToken = await StudentToken.findOne({
         userId: isStudent._id,
       });
+      console.log('2');
 
       if (isValidToken) {
         const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
@@ -334,6 +344,7 @@ const loginStudent = async (req, res, next) => {
           next
         );
 
+        console.log('3');
         return res.json({
           message:
             'Please use the mail sent to your email address to verify your email',
@@ -363,9 +374,32 @@ const loginStudent = async (req, res, next) => {
       });
     } else {
       const { password, ...others } = isStudent._doc;
+      console.log('4');
 
-      const jwtSign = await generateToken(res, isStudent);
+      const jwtSign = await generateAccessToken(
+        others._id,
+        others.email,
+        others.role
+      );
+      const refreshToken = await generateRefreshToken(
+        others._id,
+        others.email,
+        others.role
+      );
 
+      console.log('5');
+
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, 12);
+
+      await RefreshToken.findOneAndDelete({ userId: others._id });
+
+      await new RefreshToken({
+        token: hashedRefreshToken,
+        userId: others._id,
+        role: others.role,
+      }).save();
+
+      console.log('6');
       if (!jwtSign) {
         return res.json({
           error: 'Unable to sign user',
@@ -378,7 +412,8 @@ const loginStudent = async (req, res, next) => {
         success: true,
         status: 200,
         user: others,
-        token: jwtSign,
+        accessToken: jwtSign,
+        refreshToken,
       });
     }
   } catch (error) {
@@ -576,20 +611,99 @@ const getStudent = async (req, res) => {
 const studentLogout = async (req, res) => {
   try {
     // const userLogout2 = await res.cookie('token', '', { maxAge: 1 });
-    const userLogout = await res.clearCookie('token', { httpOnly: true });
-    if (!userLogout) {
-      return res.json({
-        error: 'unable to log out',
-        success: false,
-        status: 400,
-      });
-    } else {
-      return res.json({
-        message: 'User logged out successfully',
-        success: true,
-        status: 200,
-      });
+    // const userLogout = await res.clearCookie('token', { httpOnly: true });
+    // if (!userLogout) {
+    //   return res.json({
+    //     error: 'unable to log out',
+    //     success: false,
+    //     status: 400,
+    //   });
+    // } else {
+    //   return res.json({
+    //     message: 'User logged out successfully',
+    //     success: true,
+    //     status: 200,
+    //   });
+    // }
+
+    const { refreshToken } = req.body;
+    const accessToken = req.headers.authorization?.split(' ')[1];
+    const userId = req.user?.userId;
+
+    console.log('refreshToken:', refreshToken);
+    console.log('accessToken:', accessToken);
+    // console.log('userId:', userId);
+
+    if (!refreshToken) {
+      throw new Error('Refresh Token is required to proceed.', 400);
     }
+
+    if (!accessToken) {
+      throw new Error('No token found in the header.', 400);
+    }
+
+    const payload = {
+      accessToken,
+      refreshToken,
+      userId,
+    };
+
+    console.log('payload:', payload);
+    const decoded = jwt.decode(payload.accessToken);
+
+    console.log('decoded:', decoded);
+
+    // If decode failed (invalid or expired token), fallback
+    if (!decoded || !decoded.exp) {
+      const fallbackExpiresAt = new Date(Date.now() + 60 * 1000); // 1 min fallback
+      await new BlackListedToken({
+        token: payload.accessToken,
+        expires_at: fallbackExpiresAt,
+      }).save();
+
+      return {
+        message: 'Access token invalid or expired. Forced logout successful.',
+      };
+    }
+
+    const decodeRefreshToken = await jwtDecodeRefreshToken(
+      payload.refreshToken
+    );
+
+    const findToken = await getUserRefreshTokenDetails(
+      decodeRefreshToken.userId
+    );
+
+    console.log('findToken:', findToken);
+
+    if (findToken) {
+      const compareToken = await bcrypt.compare(
+        payload.refreshToken,
+        findToken.token
+      );
+
+      console.log('compareToken:', compareToken);
+
+      if (compareToken) {
+        console.log('Refresh token matched. Removing it.');
+        await RefreshToken.findByIdAndDelete({ _id: findToken._id });
+      }
+    } else {
+      console.log('No refresh token stored for this user.');
+    }
+
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    await new BlackListedToken({
+      token: payload.accessToken,
+      expires_at: expiresAt,
+    }).save();
+
+    res.status(200).json({
+      message: 'User logged out successfully',
+      success: true,
+      status: 200,
+    });
   } catch (error) {
     return res.json({
       message: 'Something happened',

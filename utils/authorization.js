@@ -64,13 +64,19 @@ const permission = (requiredRoles) => {
       const userRole = req.user.userRole;
       console.log('userRole:', userRole);
 
-      const model = roleModels[userRole];
+      let model;
+
+      if (userRole === 'admin') {
+        model = Student;
+      } else {
+        model = roleModels[userRole];
+      }
 
       if (!model) {
         throw new Error('Invalid role');
       }
 
-      const user = await model.findOne({
+      const user = await model.findById({
         _id: userId,
       });
 
@@ -82,7 +88,7 @@ const permission = (requiredRoles) => {
 
       if (!hasRole) {
         return next(
-          new AppError('You are not authorized to view this resource.', 403)
+          new Error('You are not authorized to view this resource.', 403)
         );
       }
       next();

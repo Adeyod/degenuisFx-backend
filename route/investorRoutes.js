@@ -14,14 +14,14 @@ import {
   getInvestorsBySearch,
   invest,
 } from '../controller/investorControllers.js';
-import { verifyToken } from '../utils/jwtAuth.js';
+import { verifyAccessToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
 import { memberRole } from '../utils/enumModules.js';
 import { limiter } from '../utils/limiter.js';
 
 const router = express.Router();
 
-router.post('/updateInvestor/:investorId', verifyToken, updateInvestor);
+router.post('/updateInvestor/:investorId', verifyAccessToken, updateInvestor);
 
 router.post('/register', registerInvestor);
 router.post('/login', loginInvestor);
@@ -30,16 +30,16 @@ router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword/:userId/:token', resetPassword);
 router.post('/resendEmailVerification', resendEmailVerification);
 router.post('/verify-email/:userId/:token', verifyInvestorEmail);
-router.get('/getInvestor/:investorId', verifyToken, getInvestor);
+router.get('/getInvestor/:investorId', verifyAccessToken, getInvestor);
 router.get(
   '/getSingleInvestor/:investorId',
-  verifyToken,
+  verifyAccessToken,
   permission(['admin']),
   getSingleInvestor
 );
 router.get(
   '/getAllInvestors',
-  verifyToken,
+  verifyAccessToken,
   permission(['admin']),
   getAllInvestors
 );

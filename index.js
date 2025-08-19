@@ -9,6 +9,7 @@ import studentRoutes from './route/studentRoutes.js';
 import trainingPaymentRoutes from './route/trainingPaymentRoutes.js';
 import investorRoutes from './route/investorRoutes.js';
 import otherRoutes from './route/otherRoutes.js';
+import authRoutes from './route/authRoutes.js';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/student', studentRoutes);
 app.use('/api/payments', trainingPaymentRoutes);
 app.use('/api/investors', investorRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/v2', otherRoutes);
 
 app.use(globalErrorHandler);

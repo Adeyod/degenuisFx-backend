@@ -6,7 +6,15 @@ import {
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { InvestorToken } from '../model/tokenModel.js';
-import { generateToken } from '../utils/jwtAuth.js';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  jwtDecodeRefreshToken,
+} from '../utils/jwtAuth.js';
+import { RefreshToken } from '../model/refreshToken.js';
+import BlackListedToken from '../model/blackListedmodel.js';
+import jwt from 'jsonwebtoken';
+import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -367,7 +375,26 @@ const loginInvestor = async (req, res, next) => {
     } else {
       const { password, ...others } = isInvestor._doc;
 
-      const jwtSign = await generateToken(res, isInvestor);
+      const jwtSign = await generateAccessToken(
+        others._id,
+        others.email,
+        others.role
+      );
+      const refreshToken = await generateRefreshToken(
+        others._id,
+        others.email,
+        others.role
+      );
+
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, 12);
+
+      await RefreshToken.findOneAndDelete({ userId: others._id });
+
+      await new RefreshToken({
+        token: hashedRefreshToken,
+        userId: others._id,
+        role: others.role,
+      }).save();
 
       if (!jwtSign) {
         return res.json({
@@ -381,7 +408,8 @@ const loginInvestor = async (req, res, next) => {
         success: true,
         status: 200,
         user: others,
-        token: jwtSign,
+        accessToken: jwtSign,
+        refreshToken,
       });
     }
   } catch (error) {
@@ -566,9 +594,14 @@ const getInvestor = async (req, res) => {
     const user = req.user.userId;
     const { investorId } = req.params;
 
+    console.log('user:', user);
+    console.log('investorId:', investorId);
+
     if (user !== investorId) {
-      return res.json({
+      return res.status(401).json({
         error: 'Not the authorized user',
+        status: 401,
+        success: false,
       });
     }
 
@@ -604,20 +637,83 @@ const getInvestor = async (req, res) => {
 
 const investorLogout = async (req, res) => {
   try {
-    const userLogout = await res.clearCookie('token', { httpOnly: true });
-    if (!userLogout) {
-      return res.json({
-        error: 'Unable to log investor out. Please try again',
-        status: 400,
-        success: false,
-      });
-    } else {
-      return res.json({
-        message: 'Investor logout successful',
-        status: 200,
-        success: true,
-      });
+    const { refreshToken } = req.body;
+    const accessToken = req.headers.authorization?.split(' ')[1];
+    const userId = req.user?.userId;
+
+    console.log('refreshToken:', refreshToken);
+    console.log('accessToken:', accessToken);
+    console.log('userId:', userId);
+
+    if (!refreshToken) {
+      throw new Error('Refresh Token is required to proceed.', 400);
     }
+
+    if (!accessToken) {
+      throw new Error('No token found in the header.', 400);
+    }
+
+    const payload = {
+      accessToken,
+      refreshToken,
+      userId,
+    };
+
+    const decoded = jwt.decode(payload.accessToken);
+
+    console.log('decoded:', decoded);
+
+    // If decode failed (invalid or expired token), fallback
+    if (!decoded || !decoded.exp) {
+      const fallbackExpiresAt = new Date(Date.now() + 60 * 1000); // 1 min fallback
+      await new BlackListedToken({
+        token: payload.accessToken,
+        expires_at: fallbackExpiresAt,
+      }).save();
+
+      return {
+        message: 'Access token invalid or expired. Forced logout successful.',
+      };
+    }
+
+    const decodeRefreshToken = await jwtDecodeRefreshToken(
+      payload.refreshToken
+    );
+
+    console.log('decodeRefreshToken:', decodeRefreshToken);
+
+    const findToken = await getUserRefreshTokenDetails(
+      decodeRefreshToken.userId
+    );
+
+    console.log('findToken:', findToken);
+
+    if (findToken) {
+      const compareToken = await bcrypt.compare(
+        payload.refreshToken,
+        findToken.token
+      );
+
+      console.log('compareToken:', compareToken);
+
+      if (compareToken) {
+        console.log('Refresh token matched. Removing it.');
+        await RefreshToken.findByIdAndDelete({ _id: findToken._id });
+      }
+    } else {
+      console.log('No refresh token stored for this user.');
+    }
+
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    await new BlackListedToken({
+      token: payload.accessToken,
+      expires_at: expiresAt,
+    }).save();
+
+    res.status(200).json({
+      message: 'User logged out successfully',
+    });
   } catch (error) {
     return res.json({
       message: 'Something happened',
