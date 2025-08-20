@@ -47,4 +47,36 @@ const saveInitializedPayment = async (data) => {
   return transactionResponse;
 };
 
-export { saveInitializedPayment };
+const findPaymentTransactionByReferenceAndUpdateStatus = async (
+  reference,
+  status
+) => {
+  try {
+    const transaction = await TrainingPayment.findOne({
+      'paymentSummary.reference': reference,
+    });
+
+    console.log('transaction:', transaction);
+
+    if (!transaction) {
+      throw new Error(
+        `Payment transaction with reference NO: ${reference} is not found`,
+        404
+      );
+    }
+
+    const actualPayment = transaction.paymentSummary.find(
+      (a) => a.reference === reference
+    );
+    actualPayment.transactionStatus = status;
+    transaction.markModified('paymentSummary.reference');
+    return transaction;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export {
+  saveInitializedPayment,
+  findPaymentTransactionByReferenceAndUpdateStatus,
+};

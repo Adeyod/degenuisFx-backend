@@ -1,6 +1,6 @@
 import Student from '../model/studentModel.js';
 import { paymentModeEnum } from '../utils/enumModules.js';
-import { payStackInitialized } from '../utils/paystack.js';
+import { payStackInitialized, paystackWebHook } from '../utils/paystack.js';
 import { trainingPaymentSchema } from '../utils/validation.js';
 
 const makePayment = async (req, res) => {
@@ -114,4 +114,46 @@ const makePayment = async (req, res) => {
   }
 };
 
-export { makePayment };
+const getPaymentTransactionResponseFromPaystackWebhook = async (req, res) => {
+  try {
+    const paystackResponse = await paystackWebHook(req, res);
+
+    console.log('paystackResponse:', paystackResponse);
+
+    return res.status(200).json({
+      message: 'Payment webhook processed successfully',
+      success: true,
+      status: 200,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
+
+const getPaystackCallBack = async (req, res) => {
+  try {
+    return res.json({
+      message: 'Initialized payment successfully',
+      // data: result.response.data.data,
+      success: true,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
+
+export {
+  makePayment,
+  getPaymentTransactionResponseFromPaystackWebhook,
+  getPaystackCallBack,
+};
