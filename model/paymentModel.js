@@ -2,51 +2,48 @@ import mongoose from 'mongoose';
 import {
   paymentModeEnum,
   preferedClassModeEnum,
+  transactionStatusEnum,
 } from '../utils/enumModules.js';
 
-const trainingPaymentSchema = new mongoose.Schema(
+const paymentSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Student',
       required: true,
     },
-    preferedClassMode: {
-      type: String,
+    enrollment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Enrollment',
       required: true,
-      enum: {
-        values: preferedClassModeEnum,
-        message: `{VALUE} is not a valid preferred class mode.`,
-      },
     },
-    paymentMode: {
-      type: String,
+    training: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Training',
       required: true,
-      enum: {
-        values: paymentModeEnum,
-        message: `{VALUE} is not a valid payment mode.`,
-      },
     },
+    dueDate: { type: Date },
     trainingFee: { type: Number, required: true },
     paymentSummary: [
       {
+        paymentDate: { type: Date, default: Date.now },
         amountPaid: { type: Number },
         balance: { type: Number },
         transactionType: { type: String },
-        transactionStatus: { type: String },
+        transactionStatus: {
+          type: String,
+          enum: transactionStatusEnum,
+          default: transactionStatusEnum[0],
+        },
         description: { type: String },
         reference: { type: String },
+        companyPaymentReference: { type: String },
         authorizationUrl: { type: String },
       },
     ],
-    balance: { type: Number },
-    nextPaymentDate: { type: Date },
   },
   { timestamps: true }
 );
 
-const TrainingPayment = mongoose.model(
-  'TrainingPayment',
-  trainingPaymentSchema
-);
-export default TrainingPayment;
+const Payment = mongoose.model('Payment', paymentSchema);
+export default Payment;

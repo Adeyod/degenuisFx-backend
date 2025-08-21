@@ -1,19 +1,57 @@
 import axios from 'axios';
-import { saveInitializedPayment } from '../repository/paymentRepository.js';
+import {
+  findPaymentTransactionByReferenceAndUpdateStatus,
+  saveInitializedPayment,
+  updatePaymentInitializationWithPaystackData,
+} from '../repository/paymentRepository.js';
 import { paymentModeEnum } from './enumModules.js';
+import crypto from 'crypto';
 
 const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
 const payStackInitialized = async (payload) => {
   const { amountPaid, email } = payload;
+  console.log('amountPaid:', amountPaid);
 
   const formattedAmount =
     parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+
+  console.log('formattedAmount:', formattedAmount);
   const paystackData = {
     email: email,
     amount: formattedAmount,
     metadata: payload,
   };
+
+  const data = {
+    userId: payload.userId,
+    training: payload.training,
+    enrollment: payload.enrollment,
+    amountPaid: amountPaid,
+    companyPaymentReference: payload.companyPaymentReference,
+    transactionType: 'training fee payment',
+    transactionStatus: 'pending',
+    description: 'user paid for course',
+    preferedClassMode: payload.preferedClassMode,
+    paymentMode: payload.paymentMode,
+    trainingFee: payload.trainingFee,
+    balance: payload.balance,
+    nextPaymentDate:
+      payload.paymentMode === paymentModeEnum[1] && payload.nextPaymentDate,
+    email: payload.email,
+  };
+
+  // console.log('data:', data);
+
+  const pendingPayment = await saveInitializedPayment(data);
+  console.log('pendingPayment:', pendingPayment);
+
+  if (!pendingPayment) {
+    throw new Error(
+      'Unable to save Payment initialization before sending to paystack.',
+      400
+    );
+  }
 
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
@@ -26,7 +64,7 @@ const payStackInitialized = async (payload) => {
     }
   );
 
-  // console.log('response:', response);
+  console.log('response:', response.config.data);
 
   const parsedData = JSON.parse(response.config.data);
 
@@ -38,33 +76,29 @@ const payStackInitialized = async (payload) => {
     throw new Error('Invalid amount provided. Please provide a valid number');
   }
 
-  const data = {
+  const payStackData = {
     status: response.data.status,
     message: response.data.message,
     reference: response.data.data.reference,
-    userId: parsedData.metadata.userId,
-    amountPaid: amt,
-    transactionType: 'training fee payment',
-    transactionStatus: 'pending',
-    description: 'user paid for course',
+    companyPaymentReference: parsedData.metadata.companyPaymentReference,
     authorizationUrl: response.data.data.authorization_url,
-    preferedClassMode: parsedData.metadata.preferedClassMode,
-    paymentMode: parsedData.metadata.paymentMode,
-    trainingFee: parsedData.metadata.trainingFee,
-    balance: parsedData.metadata.balance,
-    nextPaymentDate:
-      parsedData.metadata.paymentMode === paymentModeEnum[1] &&
-      parsedData.metadata.nextPaymentDate,
-    email: parsedData.metadata.email,
+    paymentId: pendingPayment._id,
   };
 
   console.log('response.response.data.data:', response.data.data);
 
-  const result = await saveInitializedPayment(data);
+  const result = await updatePaymentInitializationWithPaystackData(
+    payStackData
+  );
 
   console.log('result:', result);
 
   return { response, result };
+};
+
+const initiateBalancePayment = async (payload) => {
+  try {
+  } catch (error) {}
 };
 
 // const paystackCallBack = async (reference) => {
@@ -134,6 +168,7 @@ const paystackWebHook = async (req, res) => {
       .update(JSON.stringify(req.body))
       .digest('hex');
 
+    console.log('hash:', hash);
     if (hash == req.headers['x-paystack-signature']) {
       const event = req.body;
       console.log('event.data:', event.data);

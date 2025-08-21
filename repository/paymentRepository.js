@@ -1,23 +1,24 @@
 import Student from '../model/studentModel.js';
-import TrainingPayment from '../model/trainingPaymentModel.js';
-import { paymentModeEnum } from '../utils/enumModules.js';
+import Payment from '../model/paymentModel.js';
+import { enrollmentStatus, paymentModeEnum } from '../utils/enumModules.js';
+import Enrollment from '../model/enrollmentModel.js';
 
 const saveInitializedPayment = async (data) => {
   const {
-    status,
-    message,
-    reference,
     userId,
-    nextPaymentDate,
+    training,
+    enrollment,
     amountPaid,
-    balance,
+    companyPaymentReference,
     transactionType,
     transactionStatus,
-    preferedClassMode,
     description,
+    preferedClassMode,
     paymentMode,
     trainingFee,
-    authorizationUrl,
+    balance,
+    nextPaymentDate,
+    email,
   } = data;
 
   const findStudent = await Student.findById(userId);
@@ -28,18 +29,18 @@ const saveInitializedPayment = async (data) => {
     transactionType: transactionType,
     transactionStatus: transactionStatus,
     description: description,
-    reference: reference,
-    authorizationUrl: authorizationUrl,
+    companyPaymentReference: companyPaymentReference,
   };
 
-  const saveTransaction = new TrainingPayment({
+  const saveTransaction = new Payment({
     userId: findStudent._id,
-    nextPaymentDate:
-      paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
-    preferedClassMode: preferedClassMode,
-    paymentMode: paymentMode,
+    enrollment: enrollment,
+    training: training,
+    dueDate: paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
     trainingFee: trainingFee,
     paymentSummary: [summary],
+    preferedClassMode: preferedClassMode,
+    paymentMode: paymentMode,
   });
 
   const transactionResponse = await saveTransaction.save();
@@ -52,7 +53,9 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
   status
 ) => {
   try {
-    const transaction = await TrainingPayment.findOne({
+    console.log('reference:', reference);
+    console.log('status:', status);
+    const transaction = await Payment.findOne({
       'paymentSummary.reference': reference,
     });
 
@@ -68,15 +71,91 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
     const actualPayment = transaction.paymentSummary.find(
       (a) => a.reference === reference
     );
+
+    if (!actualPayment) {
+      throw new Error(
+        `Actual Payment transaction with reference NO: ${reference} is not found`,
+        404
+      );
+    }
+
+    const enrollment = await Enrollment.findByIdAndUpdate(
+      { _id: transaction.enrollment },
+      { status: enrollmentStatus[1] }
+    );
+
+    if (!enrollment) {
+      throw new Error('Enrollment not found.', 404);
+    }
+
     actualPayment.transactionStatus = status;
-    transaction.markModified('paymentSummary.reference');
+    transaction.markModified('paymentSummary');
+    await transaction.save();
     return transaction;
   } catch (error) {
     throw new Error(error);
   }
 };
 
+const updatePaymentInitializationWithPaystackData = async (payload) => {
+  try {
+    const {
+      companyPaymentReference,
+      status,
+      message,
+      reference,
+      authorizationUrl,
+      paymentId,
+    } = payload;
+
+    if (
+      !companyPaymentReference ||
+      !status ||
+      !message ||
+      !reference ||
+      !authorizationUrl ||
+      !paymentId
+    ) {
+      throw new Error(
+        'Please provide all needed data to process paystack initialization return.',
+        400
+      );
+    }
+
+    const findPayment = await Payment.findById(paymentId);
+
+    if (!findPayment) {
+      throw new Error('Payment document not found.', 404);
+    }
+
+    const updatedActualDoc = findPayment.paymentSummary.find(
+      (p) => p.companyPaymentReference === companyPaymentReference
+    );
+
+    // console.log('updatedActualDoc:', updatedActualDoc);
+
+    if (!updatedActualDoc) {
+      throw new Error('Actual payment document object not found.', 404);
+    }
+
+    updatedActualDoc.reference = reference;
+    updatedActualDoc.authorizationUrl = authorizationUrl;
+
+    findPayment.markModified('paymentSummary');
+    await findPayment.save();
+
+    return findPayment;
+  } catch (error) {
+    console.log('error:', error);
+    throw new Error(
+      'Unable to update payment with paystack initialization details.',
+      500
+    );
+  }
+};
+
 export {
   saveInitializedPayment,
   findPaymentTransactionByReferenceAndUpdateStatus,
+  updatePaymentInitializationWithPaystackData,
 };

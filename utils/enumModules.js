@@ -6,12 +6,18 @@ const trainingDays = ['monday', 'friday'];
 const experienceLevel = ['beginner', 'intermediate', 'expert'];
 const paymentModeEnum = ['one-off', 'pay-twice'];
 const preferedClassModeEnum = ['one-on-one', 'regular-class'];
+const enrollmentPaymentStatus = ['pending', 'partially-paid', 'completed'];
+const enrollmentStatus = ['pending', 'enroolled'];
+const transactionStatusEnum = ['pending', 'success', 'failed'];
 
 export {
   genderEnum,
   memberRole,
   trainingDays,
   experienceLevel,
+  enrollmentStatus,
   paymentModeEnum,
   preferedClassModeEnum,
+  enrollmentPaymentStatus,
+  transactionStatusEnum,
 };

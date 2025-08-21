@@ -3,7 +3,8 @@ import {
   makePayment,
   getPaymentTransactionResponseFromPaystackWebhook,
   getPaystackCallBack,
-} from '../controller/trainingPaymentController.js';
+  balancePayment,
+} from '../controller/paymentController.js';
 import { verifyAccessToken } from '../utils/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
 
@@ -17,6 +18,13 @@ router.post(
   verifyAccessToken,
   permission(['student']),
   makePayment
+);
+
+router.post(
+  '/bakance-payment',
+  verifyAccessToken,
+  permission(['student']),
+  balancePayment
 );
 
 export default router;

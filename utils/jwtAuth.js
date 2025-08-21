@@ -182,7 +182,10 @@ const jwtDecodeRefreshToken = async (token) => {
       );
     }
 
+    console.log('jwtRefreshSecret:', jwtRefreshSecret);
     const response = await jwt.verify(token, jwtRefreshSecret);
+
+    console.log('response:', response);
 
     if (
       !response ||

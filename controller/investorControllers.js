@@ -711,8 +711,10 @@ const investorLogout = async (req, res) => {
       expires_at: expiresAt,
     }).save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'User logged out successfully',
+      success: true,
+      status: 200,
     });
   } catch (error) {
     return res.json({
@@ -950,7 +952,7 @@ const resendEmailVerification = async (req, res, next) => {
 
       await emailVerification(findUser.email, findUser.firstName, link, next);
 
-      return res.json({
+      return res.status(200).json({
         message:
           'Email verification link sent successfully. Please verify your email with the link sent to you',
         success: true,

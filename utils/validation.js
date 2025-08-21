@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { paymentModeEnum, preferedClassModeEnum } from './enumModules.js';
 
-const trainingPaymentSchema = Joi.object({
+const paymentSchema = Joi.object({
   preferedClassMode: Joi.string()
     .valid(...preferedClassModeEnum)
     .required()
@@ -23,4 +23,16 @@ const trainingPaymentSchema = Joi.object({
   nextPaymentDate: Joi.date().optional(),
 });
 
-export { trainingPaymentSchema };
+const createTrainingSchema = Joi.object({
+  title: Joi.string(),
+  classModeArray: Joi.array().items(
+    Joi.object({
+      title: Joi.string()
+        .valid(...preferedClassModeEnum)
+        .required(),
+      fee: Joi.number().required(),
+    })
+  ),
+});
+
+export { paymentSchema, createTrainingSchema };

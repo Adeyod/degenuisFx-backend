@@ -1,11 +1,16 @@
+import bcrypt from 'bcryptjs';
 import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
 import { findUserById } from '../repository/userRepository.js';
-import { generateAccessToken } from '../utils/jwtAuth.js';
+import {
+  generateAccessToken,
+  jwtDecodeRefreshToken,
+} from '../utils/jwtAuth.js';
 
 const requestAccessToken = async (req, res) => {
   try {
     const refreshToken = req.body.refreshToken;
 
+    console.log('refreshToken:', refreshToken);
     if (!refreshToken) {
       return res.status(404).json({
         error: `Please provide a refresh token.`,
@@ -13,8 +18,9 @@ const requestAccessToken = async (req, res) => {
         success: false,
       });
     }
-    const decodeTokenResponse = await jwtDecodeRefreshToken(token);
+    const decodeTokenResponse = await jwtDecodeRefreshToken(refreshToken);
 
+    console.log('decodeTokenResponse:', decodeTokenResponse);
     const tokenResponse = await getUserRefreshTokenDetails(
       decodeTokenResponse.userId
     );
@@ -27,7 +33,13 @@ const requestAccessToken = async (req, res) => {
       });
     }
 
-    const compareToken = await bcrypt.compare(token, tokenResponse.token);
+    console.log('tokenResponse:', tokenResponse);
+
+    const compareToken = await bcrypt.compare(
+      refreshToken,
+      tokenResponse.token
+    );
+    console.log('compareToken:', compareToken);
 
     if (!compareToken) {
       return res.status(404).json({
@@ -38,6 +50,7 @@ const requestAccessToken = async (req, res) => {
     }
 
     const user = await findUserById(tokenResponse.userId);
+    console.log('user:', user);
 
     if (!user) {
       return res.status(404).json({
@@ -52,14 +65,9 @@ const requestAccessToken = async (req, res) => {
       user?.email,
       user.role
     );
+    console.log('newAccessToken:', newAccessToken);
 
-    const confirmTokenResponse = {
-      user,
-      newAccessToken,
-      refreshToken: token,
-    };
-
-    if (!confirmTokenResponse) {
+    if (!newAccessToken) {
       return res.status(400).json({
         error: ` Unable to generate a new access token.`,
         status: 400,
@@ -67,12 +75,12 @@ const requestAccessToken = async (req, res) => {
       });
     }
 
-    const { password: hashValue, ...others } =
-      confirmTokenResponse.user.toObject();
+    const { password: hashValue, ...others } = user.toObject();
 
     return res.status(200).json({
       message: 'Access token generated successfully',
-      accessToken: confirmTokenResponse.newAccessToken,
+      accessToken: newAccessToken,
+      refreshToken: refreshToken,
       user: others,
       success: true,
       status: 200,
