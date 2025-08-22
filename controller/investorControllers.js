@@ -1101,13 +1101,21 @@ const getAllInvestors = async (req, res) => {
       pages = Math.ceil(count / limit);
 
       if (page > pages) {
-        throw new AppError('Page can not be found', 404);
+        return res.status(404).json({
+          error: 'Page can not be found.',
+          status: 404,
+          success: false,
+        });
       }
     }
     const response = await query.sort({ createdAt: -1 });
 
     if (!response || response.length === 0) {
-      throw new AppError('Investors not found.', 404);
+      return res.status(404).json({
+        error: 'Investors not be found.',
+        status: 404,
+        success: false,
+      });
     }
 
     const investorObject = {
