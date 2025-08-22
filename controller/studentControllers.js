@@ -1045,62 +1045,67 @@ const getSingleStudent = async (req, res) => {
 
 const getAllStudents = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit, searchParams } = req.query;
+    let query = Student.find();
 
-    let pages;
-    let students;
-    let count;
+    if (searchParams) {
+      const regex = new RegExp(searchParams, 'i');
 
-    if (!page) {
-      students = await Student.find({
-        role: 'student',
-      }).select('-password');
-      count = students.length;
-      pages = 1;
-    } else {
-      const pageNumber = parseInt(page, 10) || 1;
-      const pageSize = parseInt(limit, 10) || 10;
-
-      // Calculate skip value for pagination
-      const skip = (pageNumber - 1) * pageSize;
-
-      // Find the count of total documents
-      count = await Student.countDocuments({ role: 'student' });
-
-      pages = Math.ceil(count / pageSize);
-
-      if (pageNumber > pages) {
-        return res.json({
-          error: 'Page limit exceeded',
-          status: 404,
-          success: false,
-        });
-      }
-
-      // Query for fetching students with pagination
-      students = await Student.find({ role: 'student' })
-        .select('-password')
-        .skip(skip)
-        .limit(pageSize);
-
-      // if no students found, return an appropriate message
-      if (!students.length) {
-        return res.json({
-          error: 'No students found',
-          success: false,
-          status: 404,
-        });
-      }
+      query = query
+        .where({
+          $or: [
+            { firstName: { $regex: regex } },
+            { lastName: { $regex: regex } },
+            { middleName: { $regex: regex } },
+            { countryOfResidence: { $regex: regex } },
+            { stateOfResidence: { $regex: regex } },
+            { address: { $regex: regex } },
+            { email: { $regex: regex } },
+          ],
+        })
+        .select('-password');
     }
 
-    // Return fetched students along with pagination info
+    if (!query) {
+      return res.status(404).json({
+        error: 'Students not found.',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const count = await query.clone().countDocuments();
+
+    let pages = 0;
+
+    if (page !== undefined && limit !== undefined && count !== 0) {
+      const offset = (page - 1) * limit;
+
+      query = query.skip(offset).limit(limit);
+
+      pages = Math.ceil(count / limit);
+
+      if (page > pages) {
+        throw new AppError('Page can not be found', 404);
+      }
+    }
+    const response = await query.sort({ createdAt: -1 });
+
+    if (!response || response.length === 0) {
+      throw new AppError('Students not found.', 404);
+    }
+
+    const studentObject = {
+      students: response,
+      totalPages: pages,
+      totalCount: count,
+    };
+
     return res.json({
       message: 'Students found successfully',
       success: true,
       status: 200,
-      students,
-      count,
-      pages,
+      studentObject,
     });
   } catch (error) {
     return res.json({

@@ -1060,62 +1060,67 @@ const getSingleInvestor = async (req, res) => {
 
 const getAllInvestors = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit, searchParams } = req.query;
+    let query = Investor.find();
 
-    let pages;
-    let investors;
-    let count;
+    if (searchParams) {
+      const regex = new RegExp(searchParams, 'i');
 
-    if (!page) {
-      investors = await Investor.find({
-        role: 'investor',
-      }).select('-password');
-      count = investors.length;
-      pages = 1;
-    } else {
-      const pageNumber = parseInt(page, 10) || 1;
-      const pageSize = parseInt(limit, 10) || 10;
-
-      // Calculate skip value for pagination
-      const skip = (pageNumber - 1) * pageSize;
-
-      // Find the count of total documents
-      count = await Investor.countDocuments({ role: 'investor' });
-
-      pages = Math.ceil(count / pageSize);
-
-      if (pageNumber > pages) {
-        return res.json({
-          error: 'Page limit exceeded',
-          status: 404,
-          success: false,
-        });
-      }
-
-      // Query for fetching investors with pagination
-      investors = await Investor.find({ role: 'investor' })
-        .select('-password')
-        .skip(skip)
-        .limit(pageSize);
-
-      // if no investors found, return an appropriate message
-      if (!investors.length) {
-        return res.json({
-          error: 'No investors found',
-          success: false,
-          status: 404,
-        });
-      }
+      query = query
+        .where({
+          $or: [
+            { firstName: { $regex: regex } },
+            { lastName: { $regex: regex } },
+            { middleName: { $regex: regex } },
+            { countryOfResidence: { $regex: regex } },
+            { stateOfResidence: { $regex: regex } },
+            { address: { $regex: regex } },
+            { email: { $regex: regex } },
+          ],
+        })
+        .select('-password');
     }
 
-    // Return fetched investors along with pagination info
+    if (!query) {
+      return res.status(404).json({
+        error: 'Investors not found.',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const count = await query.clone().countDocuments();
+
+    let pages = 0;
+
+    if (page !== undefined && limit !== undefined && count !== 0) {
+      const offset = (page - 1) * limit;
+
+      query = query.skip(offset).limit(limit);
+
+      pages = Math.ceil(count / limit);
+
+      if (page > pages) {
+        throw new AppError('Page can not be found', 404);
+      }
+    }
+    const response = await query.sort({ createdAt: -1 });
+
+    if (!response || response.length === 0) {
+      throw new AppError('Investors not found.', 404);
+    }
+
+    const investorObject = {
+      Investors: response,
+      totalPages: pages,
+      totalCount: count,
+    };
+
     return res.json({
-      message: 'investors found successfully',
+      message: 'Investors found successfully',
       success: true,
       status: 200,
-      investors,
-      count,
-      pages,
+      investorObject,
     });
   } catch (error) {
     return res.json({
