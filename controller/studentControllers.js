@@ -1057,6 +1057,7 @@ const getAllStudents = async (req, res) => {
             { firstName: { $regex: regex } },
             { lastName: { $regex: regex } },
             { middleName: { $regex: regex } },
+            { gender: { $regex: regex } },
             { countryOfResidence: { $regex: regex } },
             { stateOfResidence: { $regex: regex } },
             { address: { $regex: regex } },
