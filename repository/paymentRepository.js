@@ -79,18 +79,21 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
       );
     }
 
-    const enrollment = await Enrollment.findByIdAndUpdate(
-      { _id: transaction.enrollment },
-      { status: enrollmentStatus[1] }
-    );
+    // const enrollment = await Enrollment.findByIdAndUpdate(
+    //   { _id: transaction.enrollment },
+    //   { status: enrollmentStatus[1] }
+    // );
 
-    if (!enrollment) {
-      throw new Error('Enrollment not found.', 404);
+    // if (!enrollment) {
+    //   throw new Error('Enrollment not found.', 404);
+    // }
+
+    if (actualPayment.transactionStatus === 'pending') {
+      actualPayment.transactionStatus = status;
+      transaction.markModified('paymentSummary');
+      await transaction.save();
     }
 
-    actualPayment.transactionStatus = status;
-    transaction.markModified('paymentSummary');
-    await transaction.save();
     return transaction;
   } catch (error) {
     throw new Error(error);

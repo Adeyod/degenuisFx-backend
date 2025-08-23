@@ -12,12 +12,17 @@ import {
   calculateNextPaymentDay,
   generatePaymentReference,
 } from '../utils/functions.js';
-import { payStackInitialized, paystackWebHook } from '../utils/paystack.js';
+import {
+  paystackCallBack,
+  payStackInitialized,
+  paystackWebHook,
+} from '../utils/paystack.js';
 import { paymentSchema } from '../utils/validation.js';
 import dayjs from 'dayjs';
 
 const makePayment = async (req, res) => {
   try {
+    console.log('I am trying to run the controller.');
     const user = req.user;
 
     const {
@@ -280,9 +285,20 @@ const getPaymentTransactionResponseFromPaystackWebhook = async (req, res) => {
 
 const getPaystackCallBack = async (req, res) => {
   try {
+    const { reference } = req.params;
+
+    const response = await paystackCallBack(reference);
+
+    if (!response) {
+      return res.status(400).json({
+        message: 'Unable to process callback.',
+        status: 400,
+        success: false,
+      });
+    }
     return res.json({
-      message: 'Initialized payment successfully',
-      // data: result.response.data.data,
+      message: 'Callback processed successfully',
+      data: response,
       success: true,
     });
   } catch (error) {

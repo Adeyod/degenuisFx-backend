@@ -11,7 +11,7 @@ import { permission } from '../utils/authorization.js';
 const router = express.Router();
 
 router.post('/web-hook', getPaymentTransactionResponseFromPaystackWebhook);
-router.get('/call-back', getPaystackCallBack);
+router.get('/call-back/:reference', getPaystackCallBack);
 
 router.post(
   '/make-payment',
