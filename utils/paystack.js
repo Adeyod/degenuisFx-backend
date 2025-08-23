@@ -2,6 +2,7 @@ import axios from 'axios';
 import {
   findPaymentTransactionByReferenceAndUpdateStatus,
   saveInitializedPayment,
+  saveInitializedBalance,
   updatePaymentInitializationWithPaystackData,
 } from '../repository/paymentRepository.js';
 import { paymentModeEnum } from './enumModules.js';
@@ -10,7 +11,6 @@ import crypto from 'crypto';
 const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
 const payStackInitialized = async (payload) => {
-  console.log('I get to this place');
   const { amountPaid, email } = payload;
   console.log('amountPaid:', amountPaid);
 
@@ -50,6 +50,87 @@ const payStackInitialized = async (payload) => {
   if (!pendingPayment) {
     throw new Error(
       'Unable to save Payment initialization before sending to paystack.',
+      400
+    );
+  }
+
+  const response = await axios.post(
+    'https://api.paystack.co/transaction/initialize',
+    paystackData,
+    {
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  console.log('response:', response.config.data);
+
+  const parsedData = JSON.parse(response.config.data);
+
+  const amt = parseFloat(
+    parsedData.metadata.amountPaid.toString().replace(/,/g, '')
+  );
+
+  if (isNaN(amt)) {
+    throw new Error('Invalid amount provided. Please provide a valid number');
+  }
+
+  const payStackData = {
+    status: response.data.status,
+    message: response.data.message,
+    reference: response.data.data.reference,
+    companyPaymentReference: parsedData.metadata.companyPaymentReference,
+    authorizationUrl: response.data.data.authorization_url,
+    paymentId: pendingPayment._id,
+  };
+
+  console.log('response.response.data.data:', response.data.data);
+
+  const result = await updatePaymentInitializationWithPaystackData(
+    payStackData
+  );
+
+  console.log('result:', result);
+
+  return { response, result };
+};
+
+const payStackPaymentBalanceInitialized = async (payload) => {
+  const { amountPaid, email } = payload;
+  console.log('amountPaid:', amountPaid);
+
+  const formattedAmount =
+    parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+
+  console.log('formattedAmount:', formattedAmount);
+  const paystackData = {
+    email: email,
+    amount: formattedAmount,
+    metadata: payload,
+  };
+
+  const data = {
+    userId: payload.userId,
+    amountPaid: amountPaid,
+    paymentId: payload.paymentId,
+    companyPaymentReference: payload.companyPaymentReference,
+    balance: payload.balance,
+    email: payload.email,
+    transactionType: 'training fee balance payment',
+    transactionStatus: 'pending',
+    description: 'course balance',
+  };
+
+  // console.log('data:', data);
+
+  const pendingPayment = await saveInitializedBalance(data);
+  console.log('pendingPayment:', pendingPayment);
+
+  if (!pendingPayment) {
+    throw new Error(
+      'Unable to save balance initialization before sending to paystack.',
       400
     );
   }
@@ -201,4 +282,9 @@ const paystackWebHook = async (req, res) => {
   }
 };
 
-export { payStackInitialized, paystackWebHook, paystackCallBack };
+export {
+  payStackPaymentBalanceInitialized,
+  payStackInitialized,
+  paystackWebHook,
+  paystackCallBack,
+};

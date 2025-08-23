@@ -1,7 +1,11 @@
 import Enrollment from '../model/enrollmentModel.js';
+import Payment from '../model/paymentModel.js';
 import Student from '../model/studentModel.js';
 import Training from '../model/trainingModel.js';
-import { getTrainingUsingPreferedClassMode } from '../repository/trainingRepository.js';
+import {
+  getTrainingUsingPreferedClassMode,
+  getTrainingUsingTrainingIdAndTrainingFee,
+} from '../repository/trainingRepository.js';
 import {
   enrollmentPaymentStatus,
   enrollmentStatus,
@@ -15,6 +19,7 @@ import {
 import {
   paystackCallBack,
   payStackInitialized,
+  payStackPaymentBalanceInitialized,
   paystackWebHook,
 } from '../utils/paystack.js';
 import { paymentSchema } from '../utils/validation.js';
@@ -296,10 +301,11 @@ const getPaystackCallBack = async (req, res) => {
         success: false,
       });
     }
-    return res.json({
+    return res.status(200).json({
       message: 'Callback processed successfully',
       data: response,
       success: true,
+      status: 200,
     });
   } catch (error) {
     return res.json({
@@ -311,7 +317,104 @@ const getPaystackCallBack = async (req, res) => {
   }
 };
 
-const balancePayment = async (req, res) => {};
+const balancePayment = async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const { amountToPay } = req.body;
+    const user = req.user;
+
+    if (!amountToPay) {
+      return res.json({
+        error: `Amount to pay is required.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    const studentPaymentDoc = await Payment.findById({ _id: paymentId });
+
+    if (!studentPaymentDoc) {
+      return res.json({
+        error: `Payment Document not found.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (amountToPay > studentPaymentDoc.balance) {
+      return res.json({
+        error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    if (amountToPay < studentPaymentDoc.balance) {
+      return res.json({
+        error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    const trainingDoc = await getTrainingUsingTrainingIdAndTrainingFee(
+      studentPaymentDoc.training,
+      studentPaymentDoc.trainingFee
+    );
+
+    if (!trainingDoc) {
+      return res.status(404).json({
+        message: 'Training does not exist',
+        status: 404,
+        success: false,
+      });
+    }
+
+    const paymentReferencePayload = {
+      trainingId: trainingDoc._id,
+      userId: userExist._id,
+      paymentMode: 'balance',
+    };
+
+    const reference = generatePaymentReference(paymentReferencePayload);
+
+    console.log('reference:', reference);
+
+    const userPayload = {
+      userId: user.userId,
+      amountPaid: amountToPay,
+      paymentId: studentPaymentDoc._id,
+      companyPaymentReference: reference,
+      balance: (studentPaymentDoc.balance -= amountToPay),
+      email: user.userEmail,
+    };
+
+    console.log('userPayload:', userPayload);
+
+    const result = await payStackPaymentBalanceInitialized(userPayload);
+
+    if (!result) {
+      return res.status(400).json({
+        message: 'Unable to process payment.',
+        success: false,
+        status: 400,
+      });
+    }
+
+    return res.json({
+      message: 'Initialized payment successfully',
+      data: result.response.data.data,
+      success: true,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
 
 export {
   makePayment,

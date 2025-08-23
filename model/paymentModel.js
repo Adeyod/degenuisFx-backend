@@ -24,11 +24,11 @@ const paymentSchema = new mongoose.Schema(
     },
     dueDate: { type: Date },
     trainingFee: { type: Number, required: true },
+    balance: { type: Number },
     paymentSummary: [
       {
         paymentDate: { type: Date, default: Date.now },
         amountPaid: { type: Number },
-        balance: { type: Number },
         transactionType: { type: String },
         transactionStatus: {
           type: String,

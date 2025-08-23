@@ -48,6 +48,41 @@ const saveInitializedPayment = async (data) => {
   return transactionResponse;
 };
 
+const saveInitializedBalance = async (data) => {
+  const {
+    userId,
+    amountPaid,
+    paymentId,
+    companyPaymentReference,
+    balance,
+    email,
+    transactionType,
+    transactionStatus,
+    description,
+  } = data;
+
+  const paymentDoc = await Payment.findById({ _id: paymentId });
+
+  if (!paymentDoc) {
+    throw new Error('Payment document not found.', 404);
+  }
+
+  const summary = {
+    amountPaid: amountPaid,
+    balance: balance,
+    transactionType: transactionType,
+    transactionStatus: transactionStatus,
+    description: description,
+    companyPaymentReference: companyPaymentReference,
+  };
+
+  paymentDoc.paymentSummary.push(summary);
+  paymentDoc.markModified('paymentSummary');
+  const transactionResponse = await paymentDoc.save();
+
+  return transactionResponse;
+};
+
 const findPaymentTransactionByReferenceAndUpdateStatus = async (
   reference,
   status
@@ -79,14 +114,14 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
       );
     }
 
-    // const enrollment = await Enrollment.findByIdAndUpdate(
-    //   { _id: transaction.enrollment },
-    //   { status: enrollmentStatus[1] }
-    // );
+    const enrollment = await Enrollment.findByIdAndUpdate(
+      { _id: transaction.enrollment },
+      { status: enrollmentStatus[1] }
+    );
 
-    // if (!enrollment) {
-    //   throw new Error('Enrollment not found.', 404);
-    // }
+    if (!enrollment) {
+      throw new Error('Enrollment not found.', 404);
+    }
 
     if (actualPayment.transactionStatus === 'pending') {
       actualPayment.transactionStatus = status;
@@ -158,6 +193,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
 };
 
 export {
+  saveInitializedBalance,
   saveInitializedPayment,
   findPaymentTransactionByReferenceAndUpdateStatus,
   updatePaymentInitializationWithPaystackData,

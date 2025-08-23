@@ -15,6 +15,7 @@ import { RefreshToken } from '../model/refreshToken.js';
 import BlackListedToken from '../model/blackListedmodel.js';
 import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
 import jwt from 'jsonwebtoken';
+import Payment from '../model/paymentModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -307,7 +308,6 @@ const loginStudent = async (req, res, next) => {
       email,
     });
 
-    console.log('1');
     if (!isStudent) {
       return res.json({
         error: 'Invalid credentials',
@@ -332,7 +332,6 @@ const loginStudent = async (req, res, next) => {
       const isValidToken = await StudentToken.findOne({
         userId: isStudent._id,
       });
-      console.log('2');
 
       if (isValidToken) {
         const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${isValidToken.userId}&token=${isValidToken.token}`;
@@ -344,7 +343,6 @@ const loginStudent = async (req, res, next) => {
           next
         );
 
-        console.log('3');
         return res.json({
           message:
             'Please use the mail sent to your email address to verify your email',
@@ -374,7 +372,6 @@ const loginStudent = async (req, res, next) => {
       });
     } else {
       const { password, ...others } = isStudent._doc;
-      console.log('4');
 
       const jwtSign = await generateAccessToken(
         others._id,
@@ -387,11 +384,13 @@ const loginStudent = async (req, res, next) => {
         others.role
       );
 
-      console.log('5');
-
       const hashedRefreshToken = await bcrypt.hash(refreshToken, 12);
 
       await RefreshToken.findOneAndDelete({ userId: others._id });
+
+      const studentPaymentDocs = await Payment.find({
+        userId: others._id,
+      });
 
       await new RefreshToken({
         token: hashedRefreshToken,
@@ -399,7 +398,6 @@ const loginStudent = async (req, res, next) => {
         role: others.role,
       }).save();
 
-      console.log('6');
       if (!jwtSign) {
         return res.json({
           error: 'Unable to sign user',
@@ -412,6 +410,7 @@ const loginStudent = async (req, res, next) => {
         success: true,
         status: 200,
         user: others,
+        paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
         accessToken: jwtSign,
         refreshToken,
       });
@@ -551,10 +550,15 @@ const updateStudent = async (req, res) => {
 
     const { password, ...others } = findAndUpdateStudent._doc;
 
+    const studentPaymentDocs = await Payment.find({
+      userId: others._id,
+    });
+
     return res.json({
       message: `Student profile updated successfully`,
       success: true,
       status: 200,
+      paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
       user: others,
     });
   } catch (error) {
