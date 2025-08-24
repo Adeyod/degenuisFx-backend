@@ -409,7 +409,7 @@ const balancePayment = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: 'Initialized payment successfully',
+      message: 'Initialized balance payment successfully',
       data: result.response.data.data,
       success: true,
       status: 200,
