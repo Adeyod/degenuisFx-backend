@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import {
-  enrollmentPaymentStatus,
+  paymentStatus,
   enrollmentStatus,
   paymentModeEnum,
   preferedClassModeEnum,
@@ -16,7 +16,7 @@ const enrollmentSchema = new mongoose.Schema(
       required: true,
     },
     paymentMode: { type: String, enum: paymentModeEnum, required: true },
-    status: {
+    enrollmentStatus: {
       type: String,
       enum: enrollmentStatus,
       default: enrollmentStatus[0],

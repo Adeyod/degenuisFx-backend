@@ -25,7 +25,6 @@ const saveInitializedPayment = async (data) => {
 
   const summary = {
     amountPaid: amountPaid,
-    balance: balance,
     transactionType: transactionType,
     transactionStatus: transactionStatus,
     description: description,
@@ -34,6 +33,7 @@ const saveInitializedPayment = async (data) => {
 
   const saveTransaction = new Payment({
     userId: findStudent._id,
+    balance: balance,
     enrollment: enrollment,
     training: training,
     dueDate: paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
@@ -69,14 +69,13 @@ const saveInitializedBalance = async (data) => {
 
   const summary = {
     amountPaid: amountPaid,
-    balance: balance,
     transactionType: transactionType,
     transactionStatus: transactionStatus,
     description: description,
     companyPaymentReference: companyPaymentReference,
   };
 
-  paymentDoc.paymentSummary.push(summary);
+  (paymentDoc.balance = balance), paymentDoc.paymentSummary.push(summary);
   paymentDoc.markModified('paymentSummary');
   const transactionResponse = await paymentDoc.save();
 
@@ -114,13 +113,18 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
       );
     }
 
-    const enrollment = await Enrollment.findByIdAndUpdate(
-      { _id: transaction.enrollment },
-      { status: enrollmentStatus[1] }
-    );
+    const enrollment = await Enrollment.findById({
+      _id: transaction.enrollment,
+    });
 
     if (!enrollment) {
       throw new Error('Enrollment not found.', 404);
+    }
+
+    if (actualPayment.amountPaid === transaction.trainingFee) {
+      enrollment.enrollmentStatus = enrollmentStatus[3];
+    } else if (actualPayment.amountPaid < transaction.trainingFee) {
+      enrollment.enrollmentStatus = enrollmentStatus[2];
     }
 
     if (actualPayment.transactionStatus === 'pending') {
@@ -170,6 +174,14 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
       throw new Error('Payment document not found.', 404);
     }
 
+    const enrollment = await Enrollment.findById({
+      _id: findPayment.enrollment,
+    });
+
+    if (!enrollment) {
+      throw new Error('Enrollment document not found.', 404);
+    }
+
     const updatedActualDoc = findPayment.paymentSummary.find(
       (p) => p.companyPaymentReference === companyPaymentReference
     );
@@ -178,11 +190,21 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
       throw new Error('Actual payment document object not found.', 404);
     }
 
+    // if (findPayment.trainingFee > updatedActualDoc.amountPaid) {
+    //   enrollment.enrollmentStatus = enrollmentStatus[2];
+    // } else if (findPayment.trainingFee === updatedActualDoc.amountPaid) {
+    //   enrollment.enrollmentStatus = enrollmentStatus[3];
+    // } else {
+    //   enrollment.enrollmentStatus = enrollmentStatus[1];
+    // }
+
     updatedActualDoc.reference = reference;
     updatedActualDoc.authorizationUrl = authorizationUrl;
 
     findPayment.markModified('paymentSummary');
+    enrollment.markModified('enrollmentStatus');
     await findPayment.save();
+    await enrollment.save();
     console.log(
       'updatedActualDoc.authorizationUrl:',
       updatedActualDoc.authorizationUrl

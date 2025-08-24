@@ -21,7 +21,7 @@ router.post(
 );
 
 router.post(
-  '/bakance-payment/:paymentId',
+  '/balance-payment/:paymentId',
   verifyAccessToken,
   permission(['student']),
   balancePayment

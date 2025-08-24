@@ -7,7 +7,7 @@ import {
   getTrainingUsingTrainingIdAndTrainingFee,
 } from '../repository/trainingRepository.js';
 import {
-  enrollmentPaymentStatus,
+  paymentStatus,
   enrollmentStatus,
   paymentModeEnum,
   preferedClassModeEnum,
@@ -199,7 +199,7 @@ const makePayment = async (req, res) => {
       training: training._id,
       preferedClassMode: training.mode.title,
       paymentMode: paymentMode,
-      status: enrollmentStatus[0],
+      status: enrollmentStatus[1],
     });
 
     newEnrollment = await newEnrollment.save();
@@ -357,10 +357,17 @@ const balancePayment = async (req, res) => {
       });
     }
 
+    console.log('studentPaymentDoc.training:', studentPaymentDoc.training);
+    console.log(
+      'studentPaymentDoc.trainingFee:',
+      studentPaymentDoc.trainingFee
+    );
     const trainingDoc = await getTrainingUsingTrainingIdAndTrainingFee(
       studentPaymentDoc.training,
       studentPaymentDoc.trainingFee
     );
+
+    console.log('trainingDoc:', trainingDoc);
 
     if (!trainingDoc) {
       return res.status(404).json({
@@ -372,7 +379,7 @@ const balancePayment = async (req, res) => {
 
     const paymentReferencePayload = {
       trainingId: trainingDoc._id,
-      userId: userExist._id,
+      userId: user.userId,
       paymentMode: 'balance',
     };
 

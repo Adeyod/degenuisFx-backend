@@ -18,11 +18,6 @@ const payStackInitialized = async (payload) => {
     parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
 
   console.log('formattedAmount:', formattedAmount);
-  const paystackData = {
-    email: email,
-    amount: formattedAmount,
-    metadata: payload,
-  };
 
   const data = {
     userId: payload.userId,
@@ -54,9 +49,17 @@ const payStackInitialized = async (payload) => {
     );
   }
 
+  const dataToSend = {
+    email: email,
+    amount: formattedAmount,
+    metadata: payload,
+  };
+
+  console.log('dataToSend:', dataToSend);
+
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
-    paystackData,
+    dataToSend,
     {
       headers: {
         Authorization: `Bearer ${secret}`,
@@ -105,11 +108,6 @@ const payStackPaymentBalanceInitialized = async (payload) => {
     parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
 
   console.log('formattedAmount:', formattedAmount);
-  const paystackData = {
-    email: email,
-    amount: formattedAmount,
-    metadata: payload,
-  };
 
   const data = {
     userId: payload.userId,
@@ -135,6 +133,12 @@ const payStackPaymentBalanceInitialized = async (payload) => {
     );
   }
 
+  const paystackData = {
+    email: email,
+    amount: formattedAmount,
+    metadata: payload,
+  };
+
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
     paystackData,
@@ -158,7 +162,7 @@ const payStackPaymentBalanceInitialized = async (payload) => {
     throw new Error('Invalid amount provided. Please provide a valid number');
   }
 
-  const payStackData = {
+  const payStackData2 = {
     status: response.data.status,
     message: response.data.message,
     reference: response.data.data.reference,
@@ -170,7 +174,7 @@ const payStackPaymentBalanceInitialized = async (payload) => {
   console.log('response.response.data.data:', response.data.data);
 
   const result = await updatePaymentInitializationWithPaystackData(
-    payStackData
+    payStackData2
   );
 
   console.log('result:', result);

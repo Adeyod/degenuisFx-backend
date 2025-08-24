@@ -32,13 +32,16 @@ const getTrainingUsingPreferedClassMode = async (classMode) => {
 const getTrainingUsingTrainingIdAndTrainingFee = async (id, fee) => {
   try {
     const findTrainingFee = await Training.findById({ _id: id });
-    if (findTrainingFee.length === 0) {
+
+    // console.log('findTrainingFee:', findTrainingFee);
+
+    if (!findTrainingFee) {
       throw new Error('Training fee not found.', 404);
     }
 
     // console.log('findTrainingFee:', findTrainingFee);
 
-    const actualClassMode = findTrainingFee[0].classModes.find(
+    const actualClassMode = findTrainingFee.classModes.find(
       (c) => c.fee === fee
     );
     // console.log('actualClassMode:', actualClassMode);
@@ -48,7 +51,7 @@ const getTrainingUsingTrainingIdAndTrainingFee = async (id, fee) => {
 
     const objToSend = {
       mode: actualClassMode,
-      _id: findTrainingFee[0]._id,
+      _id: findTrainingFee._id,
     };
 
     console.log('objToSend:', objToSend);

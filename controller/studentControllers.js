@@ -392,6 +392,10 @@ const loginStudent = async (req, res, next) => {
         userId: others._id,
       });
 
+      const studentEnrollmentDocs = await Enrollment.find({
+        userId: others._id,
+      });
+
       await new RefreshToken({
         token: hashedRefreshToken,
         userId: others._id,
@@ -411,6 +415,7 @@ const loginStudent = async (req, res, next) => {
         status: 200,
         user: others,
         paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
+        enrollement: studentEnrollmentDocs.length > 0 && studentEnrollmentDocs,
         accessToken: jwtSign,
         refreshToken,
       });
@@ -554,11 +559,16 @@ const updateStudent = async (req, res) => {
       userId: others._id,
     });
 
+    const studentEnrollmentDocs = await Enrollment.find({
+      userId: others._id,
+    });
+
     return res.json({
       message: `Student profile updated successfully`,
       success: true,
       status: 200,
       paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
+      enrollment: studentEnrollmentDocs.length > 0 && studentEnrollmentDocs,
       user: others,
     });
   } catch (error) {

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import {
   paymentModeEnum,
+  paymentStatus,
   preferedClassModeEnum,
   transactionStatusEnum,
 } from '../utils/enumModules.js';
@@ -25,6 +26,11 @@ const paymentSchema = new mongoose.Schema(
     dueDate: { type: Date },
     trainingFee: { type: Number, required: true },
     balance: { type: Number },
+    paymentStatus: {
+      type: String,
+      enum: paymentStatus,
+      default: paymentStatus[0],
+    },
     paymentSummary: [
       {
         paymentDate: { type: Date, default: Date.now },
