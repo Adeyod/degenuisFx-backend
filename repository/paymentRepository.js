@@ -183,7 +183,10 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
 
     findPayment.markModified('paymentSummary');
     await findPayment.save();
-    console.log('updatedActualDoc:', updatedActualDoc);
+    console.log(
+      'updatedActualDoc.authorizationUrl:',
+      updatedActualDoc.authorizationUrl
+    );
 
     return findPayment;
   } catch (error) {

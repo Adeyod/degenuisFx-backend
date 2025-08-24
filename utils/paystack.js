@@ -77,7 +77,7 @@ const payStackInitialized = async (payload) => {
     throw new Error('Invalid amount provided. Please provide a valid number');
   }
 
-  const payStackData = {
+  const payStackData2 = {
     status: response.data.status,
     message: response.data.message,
     reference: response.data.data.reference,
@@ -89,7 +89,7 @@ const payStackInitialized = async (payload) => {
   console.log('response.response.data.data:', response.data.data);
 
   const result = await updatePaymentInitializationWithPaystackData(
-    payStackData
+    payStackData2
   );
 
   console.log('result:', result);
