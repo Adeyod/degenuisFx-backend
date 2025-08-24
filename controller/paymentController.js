@@ -350,7 +350,7 @@ const balancePayment = async (req, res) => {
     }
 
     if (amountToPay < studentPaymentDoc.balance) {
-      return res.json({
+      return res.status(400).json({
         error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
         status: 400,
         success: false,
