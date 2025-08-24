@@ -51,7 +51,7 @@ const makePayment = async (req, res) => {
     );
 
     if (missingField) {
-      return res.json({
+      return res.status(400).json({
         error: `Please provide ${missingField[0].replace(
           '_',
           ' '
@@ -252,7 +252,7 @@ const makePayment = async (req, res) => {
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       message: 'Initialized payment successfully',
       data: result.response.data.data,
       success: true,

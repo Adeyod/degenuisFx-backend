@@ -146,6 +146,10 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
       paymentId,
     } = payload;
 
+    console.log(
+      'I am updating payment to store payment URL before sending to frontend'
+    );
+
     if (
       !companyPaymentReference ||
       !status ||
@@ -170,8 +174,6 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
       (p) => p.companyPaymentReference === companyPaymentReference
     );
 
-    // console.log('updatedActualDoc:', updatedActualDoc);
-
     if (!updatedActualDoc) {
       throw new Error('Actual payment document object not found.', 404);
     }
@@ -181,6 +183,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
 
     findPayment.markModified('paymentSummary');
     await findPayment.save();
+    console.log('updatedActualDoc:', updatedActualDoc);
 
     return findPayment;
   } catch (error) {
