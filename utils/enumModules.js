@@ -10,8 +10,8 @@ const paymentStatus = ['pending', 'partially-paid', 'completed'];
 const enrollmentStatus = [
   'not-enrolled',
   'pending-enrollment',
-  'partially-enrollment',
-  'fully-enrollment',
+  'partial-enrollment',
+  'full-enrollment',
 ];
 const transactionStatusEnum = ['pending', 'success', 'failed'];
 
