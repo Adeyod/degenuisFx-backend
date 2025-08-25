@@ -16,6 +16,7 @@ import BlackListedToken from '../model/blackListedmodel.js';
 import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
 import jwt from 'jsonwebtoken';
 import Payment from '../model/paymentModel.js';
+import Enrollment from '../model/enrollmentModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
