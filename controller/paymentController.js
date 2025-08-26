@@ -123,6 +123,19 @@ const makePayment = async (req, res) => {
 
     console.log('training:', training);
 
+    const enrollementExist = await Enrollment.findOne({
+      studentId: userExist._id,
+      training: training._id,
+    });
+
+    if (enrollementExist) {
+      return res.status(400).json({
+        message: 'Enrollment already exist for this student.',
+        status: 400,
+        success: false,
+      });
+    }
+
     const actualTrainingFee = training.mode.fee;
 
     if (actualTrainingFee !== Number(trainingFee)) {

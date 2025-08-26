@@ -26,6 +26,7 @@ const paymentSchema = new mongoose.Schema(
     dueDate: { type: Date },
     trainingFee: { type: Number, required: true },
     balance: { type: Number },
+    currentPayment: { type: Number },
     paymentStatus: {
       type: String,
       enum: paymentStatus,

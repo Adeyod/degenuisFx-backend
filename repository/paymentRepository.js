@@ -75,7 +75,8 @@ const saveInitializedBalance = async (data) => {
     companyPaymentReference: companyPaymentReference,
   };
 
-  (paymentDoc.balance = balance), paymentDoc.paymentSummary.push(summary);
+  // (paymentDoc.balance = balance),
+  paymentDoc.paymentSummary.push(summary);
   paymentDoc.markModified('paymentSummary');
   const transactionResponse = await paymentDoc.save();
 
@@ -121,16 +122,20 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
       throw new Error('Enrollment not found.', 404);
     }
 
-    if (actualPayment.amountPaid === transaction.trainingFee) {
-      enrollment.enrollmentStatus = enrollmentStatus[3];
-    } else if (actualPayment.amountPaid < transaction.trainingFee) {
-      enrollment.enrollmentStatus = enrollmentStatus[2];
-    }
-
     if (actualPayment.transactionStatus === 'pending') {
       actualPayment.transactionStatus = status;
       transaction.markModified('paymentSummary');
       await transaction.save();
+
+      if (status === 'success') {
+        Number(transaction.currentPayment) += Number(actualPayment.amountPaid);
+        const calBal = Number(transaction.trainingFee) - Number(actualPayment.amountPaid)
+        if (Number(actualPayment.amountPaid) === Number(transaction.trainingFee)) {
+          enrollment.enrollmentStatus = enrollmentStatus[3];
+        } else if (Number(actualPayment.amountPaid) < Number(transaction.trainingFee)) {
+          enrollment.enrollmentStatus = enrollmentStatus[2];
+        }
+      }
     }
 
     return transaction;
@@ -205,10 +210,6 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
     enrollment.markModified('enrollmentStatus');
     await findPayment.save();
     await enrollment.save();
-    console.log(
-      'updatedActualDoc.authorizationUrl:',
-      updatedActualDoc.authorizationUrl
-    );
 
     return findPayment;
   } catch (error) {
