@@ -165,7 +165,17 @@ const verifyAccessToken = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    next(new Error(error.message, error.status));
+    console.log('error:', error);
+    console.log('error.status:', error.status);
+    console.log('error.name:', error.name);
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: error.message,
+        status: 401,
+        success: false,
+      });
+    }
+    next(new Error(error.message, error.statusCode));
   }
 };
 
@@ -200,8 +210,14 @@ const jwtDecodeRefreshToken = async (token) => {
     return response;
   } catch (error) {
     console.error(error);
-    // throw new Error('Invalid or expired token');
-    return;
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: 'Refresh token expired',
+        status: 401,
+        success: false,
+      });
+    }
+    next(new Error(error.message, error.statusCode));
   }
 };
 

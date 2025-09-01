@@ -17,6 +17,7 @@ import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
 import jwt from 'jsonwebtoken';
 import Payment from '../model/paymentModel.js';
 import Enrollment from '../model/enrollmentModel.js';
+import Training from '../model/trainingModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -389,12 +390,16 @@ const loginStudent = async (req, res, next) => {
 
       await RefreshToken.findOneAndDelete({ userId: others._id });
 
-      const studentPaymentDocs = await Payment.find({
+      const training = await Training.find();
+
+      const studentPaymentDocs = await Payment.findOne({
         userId: others._id,
+        training: training[0]._id,
       });
 
-      const studentEnrollmentDocs = await Enrollment.find({
+      const studentEnrollmentDocs = await Enrollment.findOne({
         userId: others._id,
+        training: training[0]._id,
       });
 
       await new RefreshToken({
@@ -415,8 +420,8 @@ const loginStudent = async (req, res, next) => {
         success: true,
         status: 200,
         user: others,
-        paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
-        enrollement: studentEnrollmentDocs.length > 0 && studentEnrollmentDocs,
+        paymentDoc: studentPaymentDocs && studentPaymentDocs,
+        enrollement: studentEnrollmentDocs ? studentEnrollmentDocs : null,
         accessToken: jwtSign,
         refreshToken,
       });

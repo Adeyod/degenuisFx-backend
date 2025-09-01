@@ -81,7 +81,7 @@ const makePayment = async (req, res) => {
     }
 
     const backendNextPaymentDate = calculateNextPaymentDay();
-    console.log('backendNextPaymentDate:', backendNextPaymentDate);
+    // console.log('backendNextPaymentDate:', backendNextPaymentDate);
 
     if (!preferedClassModeEnum.includes(preferedClassMode)) {
       return res.status(400).json({
@@ -131,6 +131,20 @@ const makePayment = async (req, res) => {
     if (enrollementExist) {
       return res.status(400).json({
         message: 'Enrollment already exist for this student.',
+        status: 400,
+        success: false,
+      });
+    }
+
+    const paymentDocExist = await Payment.findOne({
+      userId: userExist._id,
+      // enrollment: enrollementExist._id,
+      training: training._id,
+    });
+
+    if (paymentDocExist) {
+      return res.status(400).json({
+        message: 'Student already enrolled for this training.',
         status: 400,
         success: false,
       });
@@ -207,24 +221,6 @@ const makePayment = async (req, res) => {
       acurrateBalance = balance;
     }
 
-    let newEnrollment = new Enrollment({
-      studentId: userExist._id,
-      training: training._id,
-      preferedClassMode: training.mode.title,
-      paymentMode: paymentMode,
-      status: enrollmentStatus[1],
-    });
-
-    newEnrollment = await newEnrollment.save();
-
-    if (!newEnrollment) {
-      return res.status(400).json({
-        error: 'Unable to create enrollment',
-        success: false,
-        status: 400,
-      });
-    }
-
     const paymentReferencePayload = {
       trainingId: training._id,
       userId: userExist._id,
@@ -239,7 +235,7 @@ const makePayment = async (req, res) => {
       preferedClassMode: value.preferedClassMode,
       training: training._id,
       paymentMode: value.paymentMode,
-      enrollment: newEnrollment._id,
+      // enrollment: newEnrollment._id,
       trainingFee: actualTrainingFee,
       // trainingFee: value.trainingFee,
       amountPaid: value.amountPaid,

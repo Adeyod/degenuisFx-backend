@@ -1,13 +1,17 @@
 import Student from '../model/studentModel.js';
 import Payment from '../model/paymentModel.js';
-import { enrollmentStatus, paymentModeEnum } from '../utils/enumModules.js';
+import {
+  enrollmentStatus,
+  paymentModeEnum,
+  paymentStatus,
+} from '../utils/enumModules.js';
 import Enrollment from '../model/enrollmentModel.js';
 
 const saveInitializedPayment = async (data) => {
   const {
     userId,
     training,
-    enrollment,
+    // enrollment,
     amountPaid,
     companyPaymentReference,
     transactionType,
@@ -19,9 +23,37 @@ const saveInitializedPayment = async (data) => {
     balance,
     nextPaymentDate,
     email,
+    reference,
+    authorizationUrl,
   } = data;
 
   const findStudent = await Student.findById(userId);
+
+  if (!findStudent) {
+    return res.status(404).json({
+      error: 'Student not found',
+      success: false,
+      status: 404,
+    });
+  }
+
+  let newEnrollment = new Enrollment({
+    studentId: findStudent._id,
+    training: training,
+    preferedClassMode: preferedClassMode,
+    paymentMode: paymentMode,
+    enrollmentStatus: enrollmentStatus[1],
+  });
+
+  newEnrollment = await newEnrollment.save();
+
+  if (!newEnrollment) {
+    return res.status(400).json({
+      error: 'Unable to create enrollment',
+      success: false,
+      status: 400,
+    });
+  }
 
   const summary = {
     amountPaid: amountPaid,
@@ -29,12 +61,14 @@ const saveInitializedPayment = async (data) => {
     transactionStatus: transactionStatus,
     description: description,
     companyPaymentReference: companyPaymentReference,
+    reference: reference,
+    authorizationUrl: authorizationUrl,
   };
 
   const saveTransaction = new Payment({
     userId: findStudent._id,
     balance: balance,
-    enrollment: enrollment,
+    enrollment: newEnrollment._id,
     training: training,
     dueDate: paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
     trainingFee: trainingFee,
@@ -44,6 +78,7 @@ const saveInitializedPayment = async (data) => {
   });
 
   const transactionResponse = await saveTransaction.save();
+  console.log('transactionResponse:', transactionResponse);
 
   return transactionResponse;
 };
@@ -59,6 +94,7 @@ const saveInitializedBalance = async (data) => {
     transactionType,
     transactionStatus,
     description,
+    reference,
   } = data;
 
   const paymentDoc = await Payment.findById({ _id: paymentId });
@@ -73,6 +109,7 @@ const saveInitializedBalance = async (data) => {
     transactionStatus: transactionStatus,
     description: description,
     companyPaymentReference: companyPaymentReference,
+    reference: reference,
   };
 
   // (paymentDoc.balance = balance),
@@ -83,18 +120,13 @@ const saveInitializedBalance = async (data) => {
   return transactionResponse;
 };
 
-const findPaymentTransactionByReferenceAndUpdateStatus = async (
-  reference,
-  status
-) => {
+const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
   try {
-    console.log('reference:', reference);
-    console.log('status:', status);
+    const { reference, status, amount } = data;
+
     const transaction = await Payment.findOne({
       'paymentSummary.reference': reference,
     });
-
-    console.log('transaction:', transaction);
 
     if (!transaction) {
       throw new Error(
@@ -123,19 +155,44 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (
     }
 
     if (actualPayment.transactionStatus === 'pending') {
+      console.log('I am running here');
       actualPayment.transactionStatus = status;
-      transaction.markModified('paymentSummary');
-      await transaction.save();
 
       if (status === 'success') {
-        Number(transaction.currentPayment) += Number(actualPayment.amountPaid);
-        const calBal = Number(transaction.trainingFee) - Number(actualPayment.amountPaid)
-        if (Number(actualPayment.amountPaid) === Number(transaction.trainingFee)) {
+        if (transaction.trainingFee > transaction.currentPayment) {
+          transaction.currentPayment += Number(actualPayment.amountPaid);
+        }
+
+        const calBal =
+          Number(transaction.trainingFee) - Number(actualPayment.amountPaid);
+        if (
+          Number(actualPayment.amountPaid) === Number(transaction.trainingFee)
+        ) {
+          console.log('I am running full payment');
           enrollment.enrollmentStatus = enrollmentStatus[3];
-        } else if (Number(actualPayment.amountPaid) < Number(transaction.trainingFee)) {
-          enrollment.enrollmentStatus = enrollmentStatus[2];
+          transaction.paymentStatus = paymentStatus[2];
+        } else if (
+          Number(actualPayment.amountPaid) < Number(transaction.trainingFee)
+        ) {
+          console.log('I am running part payment');
+          if (transaction.currentPayment === transaction.trainingFee) {
+            console.log('I am running part payment. the remaining balance');
+            enrollment.enrollmentStatus = enrollmentStatus[3];
+            transaction.paymentStatus = paymentStatus[2];
+            transaction.balance = 0;
+          } else {
+            console.log('I am running part payment. the initial payment');
+
+            enrollment.enrollmentStatus = enrollmentStatus[2];
+            transaction.paymentStatus = paymentStatus[1];
+          }
         }
       }
+      enrollment.markModified('enrollmentStatus');
+      transaction.markModified('paymentSummary');
+
+      await enrollment.save();
+      await transaction.save();
     }
 
     return transaction;
