@@ -390,17 +390,17 @@ const loginStudent = async (req, res, next) => {
 
       await RefreshToken.findOneAndDelete({ userId: others._id });
 
-      const training = await Training.find();
+      // const training = await Training.find();
 
-      const studentPaymentDocs = await Payment.findOne({
-        userId: others._id,
-        training: training[0]._id,
-      });
+      // const studentPaymentDocs = await Payment.findOne({
+      //   userId: others._id,
+      //   training: training[0]._id,
+      // });
 
-      const studentEnrollmentDocs = await Enrollment.findOne({
-        userId: others._id,
-        training: training[0]._id,
-      });
+      // const studentEnrollmentDocs = await Enrollment.findOne({
+      //   userId: others._id,
+      //   training: training[0]._id,
+      // });
 
       await new RefreshToken({
         token: hashedRefreshToken,
@@ -420,8 +420,8 @@ const loginStudent = async (req, res, next) => {
         success: true,
         status: 200,
         user: others,
-        paymentDoc: studentPaymentDocs && studentPaymentDocs,
-        enrollement: studentEnrollmentDocs ? studentEnrollmentDocs : null,
+        // paymentDoc: studentPaymentDocs && studentPaymentDocs,
+        // enrollement: studentEnrollmentDocs ? studentEnrollmentDocs : null,
         accessToken: jwtSign,
         refreshToken,
       });
@@ -618,6 +618,8 @@ const getStudent = async (req, res) => {
 
     const training = await Training.find();
 
+    const { password, ...others } = studentDetails._doc;
+
     const studentPaymentDocs = await Payment.findOne({
       userId: others._id,
       training: training[0]._id,
@@ -627,8 +629,6 @@ const getStudent = async (req, res) => {
       userId: others._id,
       training: training[0]._id,
     });
-
-    const { password, ...others } = studentDetails._doc;
 
     return res.status(200).json({
       message: ' Student fetched successfully',
