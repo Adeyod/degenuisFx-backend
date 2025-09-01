@@ -562,20 +562,24 @@ const updateStudent = async (req, res) => {
 
     const { password, ...others } = findAndUpdateStudent._doc;
 
-    const studentPaymentDocs = await Payment.find({
+    const training = await Training.find();
+
+    const studentPaymentDocs = await Payment.findOne({
       userId: others._id,
+      training: training[0]._id,
     });
 
-    const studentEnrollmentDocs = await Enrollment.find({
+    const studentEnrollmentDocs = await Enrollment.findOne({
       userId: others._id,
+      training: training[0]._id,
     });
 
     return res.status(200).json({
       message: `Student profile updated successfully`,
       success: true,
       status: 200,
-      paymentDoc: studentPaymentDocs.length > 0 && studentPaymentDocs,
-      enrollment: studentEnrollmentDocs.length > 0 && studentEnrollmentDocs,
+      paymentDoc: studentPaymentDocs && studentPaymentDocs,
+      enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
       user: others,
     });
   } catch (error) {
@@ -612,6 +616,18 @@ const getStudent = async (req, res) => {
       });
     }
 
+    const training = await Training.find();
+
+    const studentPaymentDocs = await Payment.findOne({
+      userId: others._id,
+      training: training[0]._id,
+    });
+
+    const studentEnrollmentDocs = await Enrollment.findOne({
+      userId: others._id,
+      training: training[0]._id,
+    });
+
     const { password, ...others } = studentDetails._doc;
 
     return res.status(200).json({
@@ -619,6 +635,8 @@ const getStudent = async (req, res) => {
       success: true,
       status: 200,
       user: others,
+      paymentDoc: studentPaymentDocs && studentPaymentDocs,
+      enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
     });
   } catch (error) {
     return res.status(500).json({
@@ -998,11 +1016,25 @@ const getSingleStudent = async (req, res) => {
 
     const { password, ...others } = studentDetails._doc;
 
+    const training = await Training.find();
+
+    const studentPaymentDocs = await Payment.findOne({
+      userId: others._id,
+      training: training[0]._id,
+    });
+
+    const studentEnrollmentDocs = await Enrollment.findOne({
+      userId: others._id,
+      training: training[0]._id,
+    });
+
     return res.status(200).json({
       message: ' Student fetched successfully',
       success: true,
       status: 200,
       student: others,
+      paymentDoc: studentPaymentDocs && studentPaymentDocs,
+      enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
     });
   } catch (error) {
     return res.status(500).json({
