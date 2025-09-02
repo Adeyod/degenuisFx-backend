@@ -12,20 +12,15 @@ const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
 const payStackInitialized = async (payload) => {
   const { amountPaid, email } = payload;
-  console.log('amountPaid:', amountPaid);
 
   const formattedAmount =
     parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
-
-  console.log('formattedAmount:', formattedAmount);
 
   const dataToSend = {
     email: email,
     amount: formattedAmount,
     metadata: payload,
   };
-
-  console.log('dataToSend:', dataToSend);
 
   const response = await axios.post(
     'https://api.paystack.co/transaction/initialize',
@@ -37,9 +32,6 @@ const payStackInitialized = async (payload) => {
       },
     }
   );
-
-  console.log('response:', response.config.data);
-  console.log('response.data.data:', response.data.data);
 
   const parsedData = JSON.parse(response.config.data);
 
@@ -73,10 +65,7 @@ const payStackInitialized = async (payload) => {
     authorizationUrl: response.data.data.authorization_url,
   };
 
-  console.log('data.amountPaid:', data.amountPaid);
-
   const result = await saveInitializedPayment(data);
-  console.log('result:', result);
 
   if (!result) {
     throw new Error(
@@ -94,27 +83,18 @@ const payStackInitialized = async (payload) => {
   //   paymentId: pendingPayment._id,
   // };
 
-  // console.log('response.response.data.data:', response.data.data);
-
   // const result = await updatePaymentInitializationWithPaystackData(
   //   payStackData2
   // );
-
-  console.log('result:', result);
 
   return { response, result };
 };
 
 const payStackPaymentBalanceInitialized = async (payload) => {
   const { amountPaid, email } = payload;
-  console.log('amountPaid:', amountPaid);
 
   const formattedAmount =
     parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
-
-  console.log('formattedAmount:', formattedAmount);
-
-  // console.log('data:', data);
 
   const paystackData = {
     email: email,
@@ -132,8 +112,6 @@ const payStackPaymentBalanceInitialized = async (payload) => {
       },
     }
   );
-
-  console.log('response:', response.config.data);
 
   const parsedData = JSON.parse(response.config.data);
 
@@ -163,7 +141,6 @@ const payStackPaymentBalanceInitialized = async (payload) => {
   };
 
   const result = await saveInitializedBalance(data);
-  console.log('data.amountPaid:', data.amountPaid);
 
   if (!result) {
     throw new Error(
@@ -176,15 +153,53 @@ const payStackPaymentBalanceInitialized = async (payload) => {
 
   // };
 
-  // console.log('response.response.data.data:', response.data.data);
-
   // const result = await updatePaymentInitializationWithPaystackData(
   //   payStackData2
   // );
 
-  // console.log('result:', result);
-
   return { response, result };
+};
+
+const paystackAuthUrlValidity = async (reference) => {
+  try {
+    const headers = {
+      Authorization: `Bearer ${secret}`,
+    };
+
+    const url = `https://api.paystack.co/transaction/verify/${reference}`;
+
+    const paystackResponse = await axios(url, { headers });
+
+    const responseData = paystackResponse.data.data;
+    const createdAt = new Date(responseData.created_at).getTime();
+    const now = Date.now();
+    const twoHours = 2 * 60 * 60 * 1000;
+
+    const email = responseData.metadata.email;
+    const userId = responseData.metadata.userId;
+
+    if (responseData.status === 'abandoned' && now - createdAt > twoHours) {
+      const inValidObj = {
+        message: 'Authorization URL has expired.',
+        reference: reference,
+        userId: userId,
+        email: email,
+      };
+
+      return inValidObj;
+    } else {
+      const validObj = {
+        message: 'Authorization URL still valid.',
+        reference: reference,
+        userId: userId,
+        email: email,
+      };
+
+      return validObj;
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const paystackCallBack = async (reference) => {
@@ -197,28 +212,12 @@ const paystackCallBack = async (reference) => {
 
     const paystackResponse = await axios(url, { headers });
 
-    // console.log('paystackCallBack DATA:', paystackResponse.data.data);
-    // console.log(
-    //   'paystackCallBack DATA CUSTOMER:',
-    //   paystackResponse.data.data.customer
-    // );
-
     if (paystackResponse.data.data.status === 'success') {
       const data = {
         amount: paystackResponse.data.data.amount / 100,
         status: paystackResponse.data.data.status,
         reference: paystackResponse.data.data.reference,
       };
-
-      // console.log(
-      //   'paystackResponse.data.data.amount:',
-      //   paystackResponse.data.metadata
-      // );
-      // console.log('data.amount:', data.amount);
-      // console.log(
-      //   'paystackResponse.data.data.amount:',
-      //   paystackResponse.data.data.amount
-      // );
 
       const getTransaction =
         await findPaymentTransactionByReferenceAndUpdateStatus(data);
@@ -237,10 +236,8 @@ const paystackWebHook = async (req, res) => {
       .update(JSON.stringify(req.body))
       .digest('hex');
 
-    console.log('hash:', hash);
     if (hash == req.headers['x-paystack-signature']) {
       const event = req.body;
-      console.log('event.data:', event.data);
       if (event.event === 'charge.success') {
         // GET ACCOUNT USING ACCOUNT ID AND USER ID
         const {
@@ -266,7 +263,6 @@ const paystackWebHook = async (req, res) => {
             status
           );
 
-        console.log('getTransaction:', getTransaction);
         // if (getTransaction.length > 0) {
         // const data = {
         //   amount: amt,
@@ -296,7 +292,10 @@ const paystackWebHook = async (req, res) => {
   }
 };
 
+// paystackAuthUrlValidity('1peh0oyr6v');
+
 export {
+  paystackAuthUrlValidity,
   payStackPaymentBalanceInitialized,
   payStackInitialized,
   paystackWebHook,

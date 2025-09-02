@@ -45,7 +45,10 @@ const saveInitializedPayment = async (data) => {
   });
 
   if (enrollementExist) {
-    enrollment = enrollementExist;
+    (enrollementExist.preferedClassMode = preferedClassMode),
+      (enrollementExist.paymentMode = paymentMode),
+      (enrollementExist.enrollmentStatus = enrollmentStatus[1]),
+      (enrollment = enrollementExist);
   } else {
     const newEnrollment = new Enrollment({
       studentId: findStudent._id,

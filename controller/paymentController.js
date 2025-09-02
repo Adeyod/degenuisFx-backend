@@ -21,6 +21,7 @@ import {
   payStackInitialized,
   payStackPaymentBalanceInitialized,
   paystackWebHook,
+  paystackAuthUrlValidity,
 } from '../utils/paystack.js';
 import { paymentSchema } from '../utils/validation.js';
 import dayjs from 'dayjs';
@@ -119,12 +120,10 @@ const makePayment = async (req, res) => {
       });
     }
 
-    console.log('training:', training);
-
     const paymentDocExist = await Payment.findOne({
       userId: userExist._id,
       training: training._id,
-      'paymentSummary.transactionStatus': 'success',
+      // 'paymentSummary.transactionStatus': 'success',
     });
 
     if (paymentDocExist) {
@@ -227,8 +226,6 @@ const makePayment = async (req, res) => {
       userId: userExist._id,
     };
 
-    console.log('userPayload:', userPayload);
-
     const result = await payStackInitialized(userPayload);
 
     if (!result) {
@@ -257,8 +254,6 @@ const makePayment = async (req, res) => {
 const getPaymentTransactionResponseFromPaystackWebhook = async (req, res) => {
   try {
     const paystackResponse = await paystackWebHook(req, res);
-
-    console.log('paystackResponse:', paystackResponse);
 
     return res.status(200).json({
       message: 'Payment webhook processed successfully',
@@ -344,17 +339,10 @@ const balancePayment = async (req, res) => {
       });
     }
 
-    console.log('studentPaymentDoc.training:', studentPaymentDoc.training);
-    console.log(
-      'studentPaymentDoc.trainingFee:',
-      studentPaymentDoc.trainingFee
-    );
     const trainingDoc = await getTrainingUsingTrainingIdAndTrainingFee(
       studentPaymentDoc.training,
       studentPaymentDoc.trainingFee
     );
-
-    console.log('trainingDoc:', trainingDoc);
 
     if (!trainingDoc) {
       return res.status(404).json({
@@ -372,8 +360,6 @@ const balancePayment = async (req, res) => {
 
     const reference = generatePaymentReference(paymentReferencePayload);
 
-    console.log('reference:', reference);
-
     const userPayload = {
       userId: user.userId,
       amountPaid: amountToPay,
@@ -382,8 +368,6 @@ const balancePayment = async (req, res) => {
       balance: (studentPaymentDoc.balance -= amountToPay),
       email: user.userEmail,
     };
-
-    console.log('userPayload:', userPayload);
 
     const result = await payStackPaymentBalanceInitialized(userPayload);
 
@@ -411,9 +395,103 @@ const balancePayment = async (req, res) => {
   }
 };
 
+const resetPaymentDoc = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const studentPaymentDoc = await Payment.findOneAndDelete({
+      userId: user.userId,
+    });
+
+    if (!studentPaymentDoc) {
+      return res.json({
+        error: `Payment Document not found.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    const studentEnrollmentDoc = await Enrollment.findOneAndDelete({
+      studentId: user.userId,
+    });
+
+    if (!studentEnrollmentDoc) {
+      return res.json({
+        error: `Enrollment Document not found.`,
+        status: 400,
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Payment document deleted successfully',
+      success: true,
+      status: 200,
+    });
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
+
+const confirmPaystackAuthUrlValidity = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const response = await paystackAuthUrlValidity(reference);
+
+    const user = await Student.findOne({
+      _id: Object(response.userId),
+      email: response.email,
+    });
+
+    const enrollment = await Enrollment.findOne({
+      studentId: user._id,
+    });
+
+    const paymentDoc = await Payment.findOne({
+      userId: user._id,
+      'paymentSummary.reference': response.reference,
+    });
+
+    if (response.message === 'Authorization URL has expired.') {
+      await paymentDoc.deleteOne();
+      await enrollment.deleteOne();
+      return res.status(400).json({
+        message: 'authorization url expired.',
+        status: 400,
+        success: false,
+      });
+    } else if (response.message === 'Authorization URL still valid.') {
+      const paymentTransactionDetails = paymentDoc.paymentSummary.find(
+        (a) => a.reference === response.reference
+      );
+      return res.status(200).json({
+        message: 'Authorization URL validation successfully',
+        authorizationUrl: paymentTransactionDetails.authorizationUrl,
+        success: true,
+        status: 200,
+      });
+    }
+  } catch (error) {
+    return res.json({
+      message: 'Something happened',
+      error: error.message,
+      status: 500,
+      success: false,
+    });
+  }
+};
+
 export {
+  confirmPaystackAuthUrlValidity,
   makePayment,
   getPaymentTransactionResponseFromPaystackWebhook,
   getPaystackCallBack,
   balancePayment,
+  resetPaymentDoc,
 };
