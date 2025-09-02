@@ -27,7 +27,6 @@ import dayjs from 'dayjs';
 
 const makePayment = async (req, res) => {
   try {
-    console.log('I am trying to run the controller.');
     const user = req.user;
 
     const {
@@ -81,7 +80,6 @@ const makePayment = async (req, res) => {
     }
 
     const backendNextPaymentDate = calculateNextPaymentDay();
-    // console.log('backendNextPaymentDate:', backendNextPaymentDate);
 
     if (!preferedClassModeEnum.includes(preferedClassMode)) {
       return res.status(400).json({
@@ -123,23 +121,10 @@ const makePayment = async (req, res) => {
 
     console.log('training:', training);
 
-    const enrollementExist = await Enrollment.findOne({
-      studentId: userExist._id,
-      training: training._id,
-    });
-
-    if (enrollementExist) {
-      return res.status(400).json({
-        message: 'Enrollment already exist for this student.',
-        status: 400,
-        success: false,
-      });
-    }
-
     const paymentDocExist = await Payment.findOne({
       userId: userExist._id,
-      // enrollment: enrollementExist._id,
       training: training._id,
+      'paymentSummary.transactionStatus': 'success',
     });
 
     if (paymentDocExist) {
@@ -174,10 +159,7 @@ const makePayment = async (req, res) => {
 
       const frontendDate = new Date(value.nextPaymentDate);
 
-      console.log('frontendDate:', frontendDate);
       const frontendDateStr = dayjs(frontendDate).format('YYYY-MM-DD');
-
-      console.log('frontendDateStr:', frontendDateStr);
 
       if (backendNextPaymentDate !== frontendDateStr) {
         return res.status(400).json({
@@ -190,7 +172,7 @@ const makePayment = async (req, res) => {
       }
 
       const minimumPayment = actualTrainingFee / 2;
-      console.log('minimumPayment:', minimumPayment);
+
       if (amountPaid < minimumPayment) {
         return res.status(400).json({
           message: `The minimum amount allowed to be paid for this class is ${minimumPayment}`,
@@ -207,8 +189,6 @@ const makePayment = async (req, res) => {
           success: false,
         });
       }
-
-      console.log('acurrateBalance:', acurrateBalance);
     } else if (paymentMode === paymentModeEnum[0]) {
       if (amountPaid < actualTrainingFee) {
         return res.status(400).json({
@@ -228,8 +208,6 @@ const makePayment = async (req, res) => {
     };
 
     const reference = generatePaymentReference(paymentReferencePayload);
-
-    console.log('reference:', reference);
 
     const userPayload = {
       preferedClassMode: value.preferedClassMode,

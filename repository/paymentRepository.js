@@ -37,17 +37,28 @@ const saveInitializedPayment = async (data) => {
     });
   }
 
-  let newEnrollment = new Enrollment({
+  let enrollment;
+
+  const enrollementExist = await Enrollment.findOne({
     studentId: findStudent._id,
-    training: training,
-    preferedClassMode: preferedClassMode,
-    paymentMode: paymentMode,
-    enrollmentStatus: enrollmentStatus[1],
+    training: training._id,
   });
 
-  newEnrollment = await newEnrollment.save();
+  if (enrollementExist) {
+    enrollment = enrollementExist;
+  } else {
+    const newEnrollment = new Enrollment({
+      studentId: findStudent._id,
+      training: training,
+      preferedClassMode: preferedClassMode,
+      paymentMode: paymentMode,
+      enrollmentStatus: enrollmentStatus[1],
+    });
+    await newEnrollment.save();
+    enrollment = newEnrollment;
+  }
 
-  if (!newEnrollment) {
+  if (!enrollment) {
     return res.status(400).json({
       error: 'Unable to create enrollment',
       success: false,
@@ -65,22 +76,46 @@ const saveInitializedPayment = async (data) => {
     authorizationUrl: authorizationUrl,
   };
 
-  const saveTransaction = new Payment({
+  let payment;
+
+  const paymentDocExist = await Payment.findOne({
     userId: findStudent._id,
-    balance: balance,
-    enrollment: newEnrollment._id,
-    training: training,
-    dueDate: paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
-    trainingFee: trainingFee,
-    paymentSummary: [summary],
-    preferedClassMode: preferedClassMode,
-    paymentMode: paymentMode,
+    training: training._id,
   });
 
-  const transactionResponse = await saveTransaction.save();
-  console.log('transactionResponse:', transactionResponse);
+  if (paymentDocExist) {
+    paymentDocExist.paymentSummary.push(summary);
+    paymentDocExist.balance = balance;
+    paymentDocExist.dueDate =
+      paymentMode === paymentModeEnum[1] ? nextPaymentDate : null;
+    paymentDocExist.preferedClassMode = preferedClassMode;
+    paymentDocExist.paymentMode = paymentMode;
 
-  return transactionResponse;
+    paymentDocExist.markModified('paymentStatus');
+    await paymentDocExist.save();
+    payment = paymentDocExist;
+    console.log('payment inside existing payment doc:', payment);
+  } else {
+    const saveTransaction = new Payment({
+      userId: findStudent._id,
+      balance: balance,
+      enrollment: enrollment._id,
+      training: training,
+      dueDate: paymentMode === paymentModeEnum[1] ? nextPaymentDate : null,
+      trainingFee: trainingFee,
+      paymentSummary: [summary],
+      preferedClassMode: preferedClassMode,
+      paymentMode: paymentMode,
+    });
+
+    const transactionResponse = await saveTransaction.save();
+    payment = transactionResponse;
+    console.log('payment for new payment doc:', payment);
+  }
+
+  console.log('payment:', payment);
+
+  return payment;
 };
 
 const saveInitializedBalance = async (data) => {
