@@ -220,6 +220,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
             enrollment.enrollmentStatus = enrollmentStatus[3];
             transaction.paymentStatus = paymentStatus[2];
             transaction.balance = 0;
+            transaction.dueDate = null;
           } else {
             console.log('I am running part payment. the initial payment');
 

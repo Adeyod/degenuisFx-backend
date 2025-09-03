@@ -323,6 +323,14 @@ const balancePayment = async (req, res) => {
       });
     }
 
+    if (studentPaymentDoc.paymentSummary.length === 2) {
+      return res.json({
+        error: `Payment Summary already has 2 instances.`,
+        status: 400,
+        success: false,
+      });
+    }
+
     if (amountToPay > studentPaymentDoc.balance) {
       return res.json({
         error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,

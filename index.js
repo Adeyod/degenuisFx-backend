@@ -39,7 +39,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/investors', investorRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/trainings', trainingRoute);
-app.use('/api/v2', otherRoutes);
+app.use('/api/others', otherRoutes);
 
 app.use(globalErrorHandler);
 

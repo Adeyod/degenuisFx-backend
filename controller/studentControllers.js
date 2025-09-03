@@ -569,6 +569,13 @@ const updateStudent = async (req, res) => {
       training: training[0]._id,
     });
 
+    if (studentPaymentDocs?.paymentSummary) {
+      studentPaymentDocs.paymentSummary.sort(
+        (a, b) =>
+          new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+      );
+    }
+
     const studentEnrollmentDocs = await Enrollment.findOne({
       userId: others._id,
       training: training[0]._id,
@@ -624,6 +631,13 @@ const getStudent = async (req, res) => {
       userId: others._id,
       training: training[0]._id,
     });
+
+    if (studentPaymentDocs?.paymentSummary) {
+      studentPaymentDocs.paymentSummary.sort(
+        (a, b) =>
+          new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+      );
+    }
 
     const studentEnrollmentDocs = await Enrollment.findOne({
       userId: others._id,
@@ -1022,6 +1036,13 @@ const getSingleStudent = async (req, res) => {
       userId: others._id,
       training: training[0]._id,
     });
+
+    if (studentPaymentDocs?.paymentSummary) {
+      studentPaymentDocs.paymentSummary.sort(
+        (a, b) =>
+          new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+      );
+    }
 
     const studentEnrollmentDocs = await Enrollment.findOne({
       userId: others._id,
