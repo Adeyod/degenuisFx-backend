@@ -74,13 +74,10 @@ const updateTrainingFees = async (req, res) => {
       );
 
       if (matchingClassMode) {
-        console.log('matchingClassMode:', matchingClassMode);
         classMode.fee = matchingClassMode.fee;
-        console.log('classMode.fee:', classMode.fee);
       }
     }
 
-    console.log('training.classMode:', training.classMode);
     training.markModified('classModes');
     const updatedTraining = await training.save();
 
