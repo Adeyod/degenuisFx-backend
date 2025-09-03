@@ -133,6 +133,7 @@ const saveInitializedBalance = async (data) => {
     transactionStatus,
     description,
     reference,
+    authorizationUrl,
   } = data;
 
   const paymentDoc = await Payment.findById({ _id: paymentId });
@@ -148,6 +149,7 @@ const saveInitializedBalance = async (data) => {
     description: description,
     companyPaymentReference: companyPaymentReference,
     reference: reference,
+    authorizationUrl: authorizationUrl,
   };
 
   // (paymentDoc.balance = balance),

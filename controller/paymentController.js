@@ -458,18 +458,57 @@ const confirmPaystackAuthUrlValidity = async (req, res) => {
       'paymentSummary.reference': response.reference,
     });
 
+    console.log('paymentDoc:', paymentDoc);
+
     if (response.message === 'Authorization URL has expired.') {
-      await paymentDoc.deleteOne();
-      await enrollment.deleteOne();
-      return res.status(400).json({
-        message: 'authorization url expired.',
-        status: 400,
-        success: false,
-      });
+      console.log('response.message:', response.message);
+      if (
+        paymentDoc.paymentSummary.length > 1 &&
+        paymentDoc.paymentStatus === 'partially-paid'
+      ) {
+        console.log(
+          'paymentDoc.paymentSummary.length > 1:',
+          paymentDoc.paymentSummary.length > 1
+        );
+        console.log('paymentDoc.paymentStatus:', paymentDoc.paymentStatus);
+        // const actualPaymentSummary = paymentDoc.paymentSummary.filter(
+        //   (a) => a.reference !== response.reference
+        // );
+
+        // paymentDoc.paymentSummary = actualPaymentSummary;
+        // await paymentDoc.save();
+
+        const actualPaymentSummary = await Payment.findOneAndUpdate(
+          {
+            userId: user._id,
+            'paymentSummary.reference': response.reference,
+          },
+          {
+            $pull: { paymentSummary: { reference: response.reference } },
+          },
+          { new: true }
+        );
+        console.log('actualPaymentSummary:', actualPaymentSummary);
+        return res.status(400).json({
+          message: 'authorization url expired.',
+          status: 400,
+          success: false,
+        });
+      } else {
+        await paymentDoc.deleteOne();
+        await enrollment.deleteOne();
+        return res.status(400).json({
+          message: 'authorization url expired.',
+          status: 400,
+          success: false,
+        });
+      }
     } else if (response.message === 'Authorization URL still valid.') {
+      // console.log('response.message for valid URL:', response.message);
       const paymentTransactionDetails = paymentDoc.paymentSummary.find(
         (a) => a.reference === response.reference
       );
+      // console.log('paymentTransactionDetails:', paymentTransactionDetails);
       return res.status(200).json({
         message: 'Authorization URL validation successfully',
         authorizationUrl: paymentTransactionDetails.authorizationUrl,
@@ -488,10 +527,10 @@ const confirmPaystackAuthUrlValidity = async (req, res) => {
 };
 
 export {
-  confirmPaystackAuthUrlValidity,
   makePayment,
   getPaymentTransactionResponseFromPaystackWebhook,
   getPaystackCallBack,
   balancePayment,
+  confirmPaystackAuthUrlValidity,
   resetPaymentDoc,
 };
