@@ -346,7 +346,7 @@ const loginStudent = async (req, res, next) => {
         );
 
         return res.status(400).json({
-          message:
+          error:
             'Please use the mail sent to your email address to verify your email',
           success: false,
           status: 400,
@@ -367,7 +367,7 @@ const loginStudent = async (req, res, next) => {
       await emailVerification(isStudent.email, isStudent.firstName, link, next);
 
       return res.status(400).json({
-        message:
+        error:
           'Please use the mail sent to your email address to verify your email',
         success: false,
         status: 400,

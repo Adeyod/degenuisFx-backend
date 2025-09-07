@@ -294,7 +294,7 @@ const loginInvestor = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.json({
+      return res.status(400).json({
         error: 'All fields are required',
         status: 400,
         success: false,
@@ -306,7 +306,7 @@ const loginInvestor = async (req, res, next) => {
     });
 
     if (!isInvestor) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid credentials',
         status: 400,
         success: false,
@@ -315,7 +315,7 @@ const loginInvestor = async (req, res, next) => {
 
     const validPassword = await bcrypt.compare(password, isInvestor.password);
     if (!validPassword) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid credential',
         status: 400,
         success: false,
@@ -340,8 +340,8 @@ const loginInvestor = async (req, res, next) => {
           next
         );
 
-        return res.json({
-          message:
+        return res.status(400).json({
+          error:
             'Please use the mail sent to your email address to verify your email',
           success: false,
           status: 400,
@@ -366,8 +366,8 @@ const loginInvestor = async (req, res, next) => {
         next
       );
 
-      return res.json({
-        message:
+      return res.status(400).json({
+        error:
           'Please use the mail sent to your email address to verify your email',
         success: false,
         status: 400,
@@ -397,13 +397,13 @@ const loginInvestor = async (req, res, next) => {
       }).save();
 
       if (!jwtSign) {
-        return res.json({
+        return res.status(400).json({
           error: 'Unable to sign user',
           status: 400,
           success: false,
         });
       }
-      return res.json({
+      return res.status(200).json({
         message: 'Investor logged in successfully',
         success: true,
         status: 200,
@@ -467,7 +467,7 @@ const updateInvestor = async (req, res) => {
       !phoneNumber ||
       !stateOfResidence
     ) {
-      return res.json({
+      return res.status(400).json({
         error: 'All fields are required',
         status: 400,
         success: false,
@@ -482,7 +482,7 @@ const updateInvestor = async (req, res) => {
     const trimmedStateOfResidence = stateOfResidence.trim();
 
     if (forbiddenCharsRegex.test(trimmedNokName)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at next-of-kin field',
         status: 400,
         success: false,
@@ -492,7 +492,7 @@ const updateInvestor = async (req, res) => {
     // 0-9+
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at state of residence field',
         status: 400,
         success: false,
@@ -500,7 +500,7 @@ const updateInvestor = async (req, res) => {
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at country of residence field',
         status: 400,
         success: false,
@@ -508,7 +508,7 @@ const updateInvestor = async (req, res) => {
     }
 
     if (forbiddenCharsRegex.test(trimmedNokRelationship)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at next-of-kin relationship',
         status: 400,
         success: false,
@@ -516,7 +516,7 @@ const updateInvestor = async (req, res) => {
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at address field',
         success: false,
         status: 400,
@@ -524,7 +524,7 @@ const updateInvestor = async (req, res) => {
     }
 
     if (forbiddenCharsRegex.test(trimmedNokAddress)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid character at next-of-kin address field',
         success: false,
         status: 400,
@@ -535,7 +535,7 @@ const updateInvestor = async (req, res) => {
     const { investorId } = req.params;
 
     if (user !== investorId) {
-      return res.json({
+      return res.status(400).json({
         error: 'Not the authorized user',
         status: 400,
         success: false,
@@ -564,7 +564,7 @@ const updateInvestor = async (req, res) => {
     );
 
     if (!findAndUpdateInvestor) {
-      return res.json({
+      return res.status(404).json({
         error: 'Investor not found',
         status: 404,
         success: false,
@@ -573,14 +573,14 @@ const updateInvestor = async (req, res) => {
 
     const { password, ...others } = findAndUpdateInvestor._doc;
 
-    return res.json({
+    return res.status(200).json({
       message: 'Investor profile updated successfully',
       success: true,
       status: 200,
       user: others,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       message: 'Something happened',
       status: 500,
       success: false,
@@ -610,7 +610,7 @@ const getInvestor = async (req, res) => {
     });
 
     if (!investorDetails) {
-      return res.json({
+      return res.status(404).json({
         error: 'Investor not found',
         status: 404,
         success: false,
@@ -619,14 +619,14 @@ const getInvestor = async (req, res) => {
 
     const { password, ...others } = investorDetails._doc;
 
-    return res.json({
+    return res.status(200).json({
       message: ' Investor fetched successfully',
       success: true,
       status: 200,
       user: others,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       message: 'Something happened',
       status: 500,
       success: false,
@@ -717,7 +717,7 @@ const investorLogout = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       message: 'Something happened',
       error: error.message,
       status: 500,
@@ -730,7 +730,7 @@ const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.json({
+      return res.status(400).json({
         error: 'Email is required',
         status: 400,
         success: false,
@@ -741,7 +741,7 @@ const forgotPassword = async (req, res, next) => {
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid input for email...',
         status: 400,
         success: false,
@@ -750,7 +750,7 @@ const forgotPassword = async (req, res, next) => {
 
     const findUser = await Investor.findOne({ email });
     if (!findUser) {
-      return res.json({
+      return res.status(404).json({
         error: 'Email not found',
         success: false,
         status: 404,
@@ -775,13 +775,13 @@ const forgotPassword = async (req, res, next) => {
         next
       );
       if (!sendingForgotPassword.response) {
-        return res.json({
+        return res.status(400).json({
           error: 'Unable to send email. Please try again',
           success: false,
           status: 400,
         });
       } else {
-        return res.json({
+        return res.status(200).json({
           message: 'Password reset link has been sent',
           success: true,
           status: 200,
@@ -804,7 +804,7 @@ const resetPassword = async (req, res) => {
     const { userId, token } = req.params;
     const { password, confirmPassword } = req.body;
     if (!password || !confirmPassword) {
-      return res.json({
+      return res.status(400).json({
         status: 400,
         error: 'All fields are required',
         success: false,
@@ -817,7 +817,7 @@ const resetPassword = async (req, res) => {
         password
       )
     ) {
-      return res.json({
+      return res.status(401).json({
         error:
           'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
         success: false,
@@ -826,7 +826,7 @@ const resetPassword = async (req, res) => {
     }
 
     if (password !== confirmPassword) {
-      return res.json({
+      return res.status(400).json({
         error: 'Password and confirm password do not match',
         status: 400,
         success: false,
@@ -839,7 +839,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findToken) {
-      return res.json({
+      return res.status(404).json({
         error: 'Token not found',
         success: false,
         status: 404,
@@ -851,7 +851,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findUser) {
-      return res.json({
+      return res.status(404).json({
         error: 'User not found',
         status: 404,
         success: false,
@@ -864,13 +864,13 @@ const resetPassword = async (req, res) => {
     await findUser.save();
     await findToken.deleteOne();
 
-    return res.json({
+    return res.status(200).json({
       message: 'Password reset successfully. You can login',
       status: 200,
       success: true,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       error: error.message,
       message: 'Something happened',
       success: false,
@@ -883,7 +883,7 @@ const resendEmailVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.json({
+      return res.status(400).json({
         error: 'Email is required',
         status: 400,
         success: false,
@@ -894,7 +894,7 @@ const resendEmailVerification = async (req, res, next) => {
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
+      return res.status(400).json({
         error: 'Invalid input for email...',
         status: 400,
         success: false,
@@ -904,7 +904,7 @@ const resendEmailVerification = async (req, res, next) => {
     const findUser = await Investor.findOne({ email: trimmedEmail });
 
     if (!findUser) {
-      return res.json({
+      return res.status(404).json({
         error: 'User not found',
         success: false,
         status: 404,
@@ -912,7 +912,7 @@ const resendEmailVerification = async (req, res, next) => {
     }
 
     if (findUser.isVerified === true) {
-      return res.json({
+      return res.status(400).json({
         error: 'User already verified',
         success: false,
         status: 400,
@@ -930,7 +930,7 @@ const resendEmailVerification = async (req, res, next) => {
 
       await emailVerification(findUser.email, findUser.firstName, link, next);
 
-      return res.json({
+      return res.status(200).json({
         message:
           'Verification link sent successfully. Please verify your email with the link sent to you',
         success: true,
@@ -980,7 +980,7 @@ const getSingleInvestor = async (req, res) => {
     });
 
     if (!investorDetails) {
-      return res.json({
+      return res.status(404).json({
         error: 'Investor not found',
         status: 404,
         success: false,
@@ -989,14 +989,14 @@ const getSingleInvestor = async (req, res) => {
 
     const { password, ...others } = investorDetails._doc;
 
-    return res.json({
+    return res.status(200).json({
       message: ' investor fetched successfully',
       success: true,
       status: 200,
       investor: others,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       message: 'Something happened',
       status: 500,
       success: false,
@@ -1125,14 +1125,14 @@ const getAllInvestors = async (req, res) => {
       totalCount: count,
     };
 
-    return res.json({
+    return res.status(200).json({
       message: 'Investors found successfully',
       success: true,
       status: 200,
       investorObject,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       error: error.message,
       status: 500,
       success: false,
@@ -1146,7 +1146,7 @@ const getInvestorsBySearch = async (req, res) => {
     const { query } = req.query;
 
     if (!query) {
-      return res.json({
+      return res.status(400).json({
         error: 'Query parameter must be provided',
         success: false,
         status: 400,
@@ -1170,14 +1170,14 @@ const getInvestorsBySearch = async (req, res) => {
     }).select('-password');
 
     if (!investors || investors.length === 0 || investors === null) {
-      return res.json({
+      return res.status(404).json({
         error: 'No matching investors found',
         status: 404,
         success: false,
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       count: investors.length,
       message: 'Searches found',
       success: true,
@@ -1185,7 +1185,7 @@ const getInvestorsBySearch = async (req, res) => {
       investors,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       error: error.message,
       status: 500,
       success: false,
