@@ -17,10 +17,10 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-// const emailVerificationTemplate = readFileSync(
-//   join(__dirname, 'htmlTemplates', 'emailVerification.html'),
-//   'utf-8'
-// );
+const emailVerificationTemplate = readFileSync(
+  join(__dirname, 'htmlTemplates', 'emailVerification.html'),
+  'utf-8'
+);
 
 // const passwordResetTemplate = readFileSync(
 //   join(__dirname, 'htmlTemplates', 'passwordReset.html'),
@@ -45,11 +45,11 @@ const emailVerification = async (email, firstName, link, next) => {
   try {
     const fileName = 'emailVerification';
 
-    const emailVerificationTemplate = emailTemplate(
-      folderName,
-      fileName,
-      extension
-    );
+    // const emailVerificationTemplate = emailTemplate(
+    //   folderName,
+    //   fileName,
+    //   extension
+    // );
     const emailVerificationContent = emailVerificationTemplate
       .replace('{{verificationLink}}', link)
       .replace('{fullName}', firstName);
