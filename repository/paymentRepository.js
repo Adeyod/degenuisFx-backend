@@ -6,6 +6,7 @@ import {
   paymentStatus,
 } from '../utils/enumModules.js';
 import Enrollment from '../model/enrollmentModel.js';
+import { paymentEnrollmentConfirmationMail } from '../utils/nodemailer.js';
 
 const saveInitializedPayment = async (data) => {
   const {
@@ -198,6 +199,10 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
       console.log('I am running here');
       actualPayment.transactionStatus = status;
 
+      const student = await Student.findById({
+        _id: enrollment.studentId,
+      });
+
       if (status === 'success') {
         if (transaction.trainingFee > transaction.currentPayment) {
           transaction.currentPayment += Number(actualPayment.amountPaid);
@@ -211,6 +216,16 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
           console.log('I am running full payment');
           enrollment.enrollmentStatus = enrollmentStatus[3];
           transaction.paymentStatus = paymentStatus[2];
+
+          await paymentEnrollmentConfirmationMail({
+            email: student.email,
+            enrollmentDate: Date.now(),
+            amountPaid: actualPayment.amountPaid,
+            courseType: enrollment.preferedClassMode,
+            paymentstatus: paymentStatus[2],
+            nextPaymentDate: '',
+            fullName: `${student.firstName} ${student.lastName}`,
+          });
         } else if (
           Number(actualPayment.amountPaid) < Number(transaction.trainingFee)
         ) {
@@ -226,6 +241,15 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
             enrollment.enrollmentStatus = enrollmentStatus[2];
             transaction.paymentStatus = paymentStatus[1];
+            await paymentEnrollmentConfirmationMail({
+              email: student.email,
+              enrollmentDate: Date.now(),
+              amountPaid: actualPayment.amountPaid,
+              courseType: enrollment.preferedClassMode,
+              paymentstatus: paymentStatus[1],
+              nextPaymentDate: actualPayment.dueDate,
+              fullName: `${student.firstName} ${student.lastName}`,
+            });
           }
         }
       }

@@ -78,20 +78,22 @@ const forgotPasswordSender = async (email, link, firstName, next) => {
 
 const paymentEnrollmentConfirmationMail = async (
   email,
-  link,
   enrollmentDate,
   amountPaid,
   courseType,
+  paymentStatus,
+  nextPaymentDate,
   fullName
 ) => {
   try {
     const paymentEnrollmentConfirmationContent =
       paymentEnrollmentConfirmationTemplate
         .replace('{{enrollmentDate}}', enrollmentDate)
+        .replace('{{nextPaymentDate}}', nextPaymentDate)
+        .replace('{{paymentStatus}}', paymentStatus)
         .replace('{{amountPaid}}', amountPaid)
         .replace('{{courseType}}', courseType)
-        .replace('{{fullName}}', fullName)
-        .replace('{{resetLink}}', link);
+        .replace('{{fullName}}', fullName);
     const info = await transporter.sendMail({
       text: `Welcome ${firstName}`,
       subject: 'Payment Confirmation',
