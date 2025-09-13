@@ -43,16 +43,9 @@ const emailTemplate = (folderName, fileName, extension) => {
 
 const emailVerification = async (email, firstName, link, next) => {
   try {
-    const fileName = 'emailVerification';
-
-    // const emailVerificationTemplate = emailTemplate(
-    //   folderName,
-    //   fileName,
-    //   extension
-    // );
     const emailVerificationContent = emailVerificationTemplate
       .replace('{{verificationLink}}', link)
-      .replace('{fullName}', firstName);
+      .replace('{{fullName}}', firstName);
 
     const info = transporter.sendMail({
       text: `Welcome ${firstName}`,
