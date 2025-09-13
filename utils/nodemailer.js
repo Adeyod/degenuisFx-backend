@@ -22,24 +22,18 @@ const emailVerificationTemplate = readFileSync(
   'utf-8'
 );
 
-// const passwordResetTemplate = readFileSync(
-//   join(__dirname, 'htmlTemplates', 'passwordReset.html'),
-//   'utf8'
-// );
-// const paymentEnrollmentConfirmationTemplate = readFileSync(
-//   join(__dirname, 'htmlTemplates', 'paymentEnrollmentConfirmation.html'),
-//   'utf8'
-// );
-
-const folderName = 'htmlTemplates';
-const extension = '.html';
-
-const emailTemplate = (folderName, fileName, extension) => {
-  const response = readFileSync(
-    join(__dirname, folderName, `${fileName}${extension}`)
-  );
-  return response;
-};
+const passwordResetTemplate = readFileSync(
+  join(__dirname, 'htmlTemplates', 'passwordReset.html'),
+  'utf8'
+);
+const paymentEnrollmentConfirmationTemplate = readFileSync(
+  join(__dirname, 'htmlTemplates', 'paymentEnrollmentConfirmation.html'),
+  'utf8'
+);
+const trainingCompletionCongratulationTemplate = readFileSync(
+  join(__dirname, 'htmlTemplates', 'trainingCompletionCongratulations.html'),
+  'utf8'
+);
 
 const emailVerification = async (email, firstName, link, next) => {
   try {
@@ -64,14 +58,6 @@ const emailVerification = async (email, firstName, link, next) => {
 
 const forgotPasswordSender = async (email, link, firstName, next) => {
   try {
-    const fileName = 'passwordReset';
-
-    const passwordResetTemplate = emailTemplate(
-      folderName,
-      fileName,
-      extension
-    );
-
     const forgotPasswordContent = passwordResetTemplate
       .replace('{{resetLink}}', link)
       .replace('{{fullName}}', firstName);
@@ -99,12 +85,6 @@ const paymentEnrollmentConfirmationMail = async (
   fullName
 ) => {
   try {
-    const fileName = 'paymentEnrollmentConfirmation';
-    const paymentEnrollmentConfirmationTemplate = emailTemplate(
-      folderName,
-      fileName,
-      extension
-    );
     const paymentEnrollmentConfirmationContent =
       paymentEnrollmentConfirmationTemplate
         .replace('{{enrollmentDate}}', enrollmentDate)
@@ -129,12 +109,6 @@ const paymentEnrollmentConfirmationMail = async (
 
 const trainingCompletionCongratulationMail = async (studentName, email) => {
   try {
-    const fileName = 'trainingCompletionCongratulation';
-    const trainingCompletionCongratulationTemplate = emailTemplate(
-      folderName,
-      fileName,
-      extension
-    );
     const trainingCompletionCongratulationContent =
       trainingCompletionCongratulationTemplate.replace(
         '{{studentName}}',
