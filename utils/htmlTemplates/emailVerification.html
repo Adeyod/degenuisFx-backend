@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <!-- Wrapper -->
+    <table
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      bgcolor="#f4f4f4"
+    >
+      <tr>
+        <td align="center" style="padding: 20px 0">
+          <!-- Container -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            style="background: #ffffff; border-radius: 8px; overflow: hidden"
+          >
+            <!-- Header -->
+            <tr>
+              <td align="center" style="padding: 20px">
+                <img
+                  src="./assets/logo.png"
+                  alt="DeGenius FX Academy"
+                  width="80"
+                  style="display: block"
+                />
+              </td>
+            </tr>
+
+            <!-- Body (Email Verification) -->
+            <tr>
+              <td style="padding: 30px; color: #333333">
+                <h2 style="margin: 0 0 15px; color: #0d1b2a">
+                  Verify Your Email Address
+                </h2>
+                <p>Dear <%= fullName %>,</p>
+                <p>
+                  Thank you for signing up with DeGenius FX Academy. To complete
+                  your registration, please verify your email address by
+                  clicking the button below:
+                </p>
+                <p style="text-align: center">
+                  <a
+                    href="<%= verificationLink %>"
+                    style="
+                      display: inline-block;
+                      padding: 12px 20px;
+                      background: #008080;
+                      color: #ffffff;
+                      text-decoration: none;
+                      border-radius: 4px;
+                    "
+                    >Verify Email</a
+                  >
+                </p>
+                <p>
+                  If you did not create an account, you can safely ignore this
+                  email.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                bgcolor="#1824A6"
+                style="
+                  padding: 20px;
+                  text-align: center;
+                  color: #ffffff;
+                  font-size: 14px;
+                "
+              >
+                <p style="margin: 0">Follow us:</p>
+                <p>
+                  <a
+                    href="https://www.linkedin.com/in/degenius-fx-93b389127"
+                    style="color: #e0a106; text-decoration: none"
+                    >Linkedin</a
+                  >
+                  |
+                  <a
+                    href="https://www.facebook.com/degeniusfx"
+                    style="color: #e0a106; text-decoration: none"
+                    >Facebook</a
+                  >
+                  |
+                  <a
+                    href="https://www.instagram.com/degenius_fx"
+                    style="color: #e0a106; text-decoration: none"
+                    >Instagram</a
+                  >
+                </p>
+                <p style="margin: 10px 0 0">
+                  &copy; 2025 DeGenius FX Academy. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <!-- End Container -->
+        </td>
+      </tr>
+    </table>
+    <!-- End Wrapper -->
+  </body>
+</html>
