@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
-import { dirname, join } from 'path';
+import path, { dirname, join } from 'path';
 import { readFileSync } from 'fs';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -86,13 +87,6 @@ const paymentEnrollmentConfirmationMail = async ({
   fullName,
 }) => {
   try {
-    console.log('paymentEnrollmentConfirmationMail:', email);
-    console.log('paymentEnrollmentConfirmationMail:', enrollmentDate);
-    console.log('paymentEnrollmentConfirmationMail:', amountPaid);
-    console.log('paymentEnrollmentConfirmationMail:', courseType);
-    console.log('paymentEnrollmentConfirmationMail:', paymentStatus);
-    console.log('paymentEnrollmentConfirmationMail:', nextPaymentDate);
-    console.log('paymentEnrollmentConfirmationMail:', fullName);
     const paymentEnrollmentConfirmationContent =
       paymentEnrollmentConfirmationTemplate
         .replace('{{enrollmentDate}}', enrollmentDate)
@@ -100,7 +94,9 @@ const paymentEnrollmentConfirmationMail = async ({
         .replace('{{paymentStatus}}', paymentStatus)
         .replace('{{amountPaid}}', amountPaid)
         .replace('{{courseType}}', courseType)
-        .replace('{{fullName}}', fullName);
+        .replace('{{fullName}}', fullName)
+        .replace('{fullName}', fullName);
+
     const info = await transporter.sendMail({
       text: `Welcome ${fullName}`,
       subject: 'Payment Confirmation',

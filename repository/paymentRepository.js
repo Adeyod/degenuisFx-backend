@@ -8,6 +8,7 @@ import {
 import Enrollment from '../model/enrollmentModel.js';
 import { paymentEnrollmentConfirmationMail } from '../utils/nodemailer.js';
 import { AppError } from '../utils/app.error.js';
+import { capitalizeFirstLetter, formatDate } from '../utils/functions.js';
 
 const saveInitializedPayment = async (data) => {
   const {
@@ -196,14 +197,17 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
         _id: enrollment.studentId,
       });
 
-      console.log('student:', student);
-
       if (!student) {
         throw new AppError('Student not found', 404);
       }
 
-      const fullName = `${student.firstName} ${student.lastName}`;
+      const fullName = `${capitalizeFirstLetter(
+        student.firstName
+      )} ${capitalizeFirstLetter(student.lastName)}`;
       console.log('fullName:', fullName);
+
+      const regDate = new Date();
+      const formattedDate = formatDate(regDate);
 
       if (status === 'success') {
         if (transaction.trainingFee > transaction.currentPayment) {
@@ -221,11 +225,11 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
           await paymentEnrollmentConfirmationMail({
             email: student.email,
-            enrollmentDate: Date.now(),
+            enrollmentDate: formattedDate,
             amountPaid: actualPayment.amountPaid,
             courseType: enrollment.preferedClassMode,
-            paymentstatus: paymentStatus[2],
-            nextPaymentDate: '',
+            paymentStatus: paymentStatus[2],
+            nextPaymentDate: 'N/A',
             fullName: fullName,
           });
         } else if (
@@ -233,22 +237,19 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
         ) {
           console.log('I am running part payment');
           if (transaction.currentPayment === transaction.trainingFee) {
-            console.log('I am running part payment. the remaining balance');
             enrollment.enrollmentStatus = enrollmentStatus[3];
             transaction.paymentStatus = paymentStatus[2];
             transaction.balance = 0;
             transaction.dueDate = null;
           } else {
-            console.log('I am running part payment. the initial payment');
-
             enrollment.enrollmentStatus = enrollmentStatus[2];
             transaction.paymentStatus = paymentStatus[1];
             await paymentEnrollmentConfirmationMail({
               email: student.email,
-              enrollmentDate: Date.now(),
+              enrollmentDate: formattedDate,
               amountPaid: actualPayment.amountPaid,
               courseType: enrollment.preferedClassMode,
-              paymentstatus: paymentStatus[1],
+              paymentStatus: paymentStatus[1],
               nextPaymentDate: actualPayment.dueDate,
               fullName: fullName,
             });

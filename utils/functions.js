@@ -45,7 +45,39 @@ const getStudentLocation = async (ip) => {
   }
 };
 
+const capitalizeFirstLetter = (payload) => {
+  const value = payload.charAt(0).toUpperCase() + payload.slice(1);
+
+  return value;
+};
+
+const formatDate = (date) => {
+  const f_date = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const time = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  const weekDay = f_date.find((p) => p.type === 'weekday')?.value;
+  const month = f_date.find((p) => p.type === 'month')?.value;
+  const day = f_date.find((p) => p.type === 'day')?.value;
+  const year = f_date.find((p) => p.type === 'year')?.value;
+
+  const dateFormatted = `${weekDay},${month} ${day}, ${year}, ${time}`;
+
+  return dateFormatted;
+};
+
 export {
+  formatDate,
+  capitalizeFirstLetter,
   getStudentLocation,
   calculateNextPaymentDay,
   generatePaymentReference,
