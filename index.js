@@ -12,6 +12,7 @@ import investorRoutes from './route/investorRoutes.js';
 import otherRoutes from './route/otherRoutes.js';
 import authRoutes from './route/authRoutes.js';
 import trainingRoute from './route/trainingRoute.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -34,6 +35,8 @@ app.get('/', (req, res) => {
   return;
 });
 
+globalErrorHandler();
+
 app.use('/api/student', studentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/investors', investorRoutes);
@@ -41,7 +44,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/trainings', trainingRoute);
 app.use('/api/others', otherRoutes);
 
-app.use(globalErrorHandler);
+app.use(errorHandler);
 
 const port = process.env.PORT || 4444;
 

@@ -14,7 +14,7 @@ import {
   getStudentsBySearch,
   subscribeToCourse,
 } from '../controller/studentControllers.js';
-import { verifyAccessToken } from '../utils/jwtAuth.js';
+import { verifyAccessToken } from '../middleware/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
 import { memberRole } from '../utils/enumModules.js';
 import { limiter } from '../utils/limiter.js';

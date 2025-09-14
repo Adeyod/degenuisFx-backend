@@ -10,7 +10,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   jwtDecodeRefreshToken,
-} from '../utils/jwtAuth.js';
+} from '../middleware/jwtAuth.js';
 import { RefreshToken } from '../model/refreshToken.js';
 import BlackListedToken from '../model/blackListedmodel.js';
 import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
@@ -18,6 +18,7 @@ import jwt from 'jsonwebtoken';
 import Payment from '../model/paymentModel.js';
 import Enrollment from '../model/enrollmentModel.js';
 import Training from '../model/trainingModel.js';
+import { AppError } from '../utils/app.error.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -52,11 +53,12 @@ const registerStudent = async (req, res, next) => {
       !gender ||
       !DOB
     ) {
-      return res.status(400).json({
-        error: 'Please fill all mandatory fields',
-        status: 400,
-        success: false,
-      });
+      // return res.status(400).json({
+      //   error: 'Please fill all mandatory fields',
+      //   status: 400,
+      //   success: false,
+      // });
+      throw new AppError('Please fill all mandatory fields', 400);
     }
 
     const trimmedFirstName = firstName.trim();
@@ -68,52 +70,52 @@ const registerStudent = async (req, res, next) => {
     const trimmedMiddleName = middleName.trim();
 
     if (forbiddenCharsRegex.test(trimmedFirstName)) {
-      return res.status(400).json({
-        error: `Invalid character in first name field`,
-        status: 400,
-        success: false,
-      });
+      // return res.status(400).json({
+      //   error: `Invalid character in first name field`,
+      //   status: 400,
+      //   success: false,
+      // });
+      throw new AppError(`Invalid character in first name field`, 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedLastName)) {
-      return res.status(400).json({
-        error: `Invalid character in last name field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in last name field`, 400);
+      // return res.status(400).json({
+      //   error: `Invalid character in last name field`,
+      //   status: 400,
+      //   success: false,
+      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
-      return res.status(400).json({
-        error: `Invalid character in address field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in address field`, 400);
+      // return res.status(400).json({
+      //   error: `Invalid character in address field`,
+      //   status: 400,
+      //   success: false,
+      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-      return res.status(400).json({
-        error: `Invalid character in country of residence field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        `Invalid character in country of residence field`,
+        400
+      );
+
+      // return res.status(400).json({
+      //   error: `Invalid character in country of residence field`,
+      //   status: 400,
+      //   success: false,
+      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-      return res.status(400).json({
-        error: `Invalid character in state of residence field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in state of residence field`, 400);
     }
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.status(400).json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     // // strong password check
@@ -122,29 +124,19 @@ const registerStudent = async (req, res, next) => {
         password
       )
     ) {
-      return res.status(401).json({
-        error:
-          'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
-        success: false,
-        status: 401,
-      });
+      throw new AppError(
+        'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+        400
+      );
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: 'Password and confirm password do not match',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Password and confirm password do not match', 400);
     }
 
     const alreadyRegistered = await Student.findOne({ email: trimmedEmail });
     if (alreadyRegistered) {
-      return res.status(400).json({
-        error: 'Email already exist',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email already exist', 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -155,11 +147,7 @@ const registerStudent = async (req, res, next) => {
 
     if (middleName !== '') {
       if (forbiddenCharsRegex.test(trimmedMiddleName)) {
-        return res.status(400).json({
-          error: `Invalid character in middle name field`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(`Invalid character in middle name field`, 400);
       }
 
       const newStudent = await new Student({
@@ -236,12 +224,12 @@ const registerStudent = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   status: 500,
-    //   success: false,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -254,11 +242,7 @@ const verifyStudentEmail = async (req, res) => {
     });
 
     if (!checkToken) {
-      return res.status(404).json({
-        error: 'Token can not be found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Token can not be found', 404);
     }
 
     const studentUpdate = await Student.findByIdAndUpdate(
@@ -268,11 +252,7 @@ const verifyStudentEmail = async (req, res) => {
     );
 
     if (!studentUpdate) {
-      return res.status(400).json({
-        error: 'Unable to update student',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to update student', 400);
     }
 
     await checkToken.deleteOne();
@@ -286,12 +266,12 @@ const verifyStudentEmail = async (req, res) => {
       student: others,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -427,13 +407,12 @@ const loginStudent = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   message: 'Something happened',
-    //   status: 500,
-    //   success: false,
-    //   error: error.message,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -590,12 +569,12 @@ const updateStudent = async (req, res) => {
       user: others,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -653,12 +632,12 @@ const getStudent = async (req, res) => {
       enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -689,19 +668,11 @@ const studentLogout = async (req, res) => {
     // console.log('userId:', userId);
 
     if (!refreshToken) {
-      return res.status(400).json({
-        error: 'Refresh Token is required to proceed.',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Refresh Token is required to proceed.', 400);
     }
 
     if (!accessToken) {
-      return res.status(400).json({
-        error: 'No token found in the header.',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('No token found in the header.', 400);
     }
 
     const payload = {
@@ -762,12 +733,12 @@ const studentLogout = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -775,31 +746,19 @@ const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
-        error: 'Email is required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email is required', 400);
     }
 
     const trimmedEmail = email.trim();
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.status(400).json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     const findUser = await Student.findOne({ email });
     if (!findUser) {
-      return res.status(404).json({
-        error: 'Email not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Email not found', 404);
     } else {
       const token =
         crypto.randomBytes(32).toString('hex') +
@@ -830,13 +789,12 @@ const forgotPassword = async (req, res, next) => {
       }
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   message: 'Something happened',
-    //   success: false,
-    //   status: 500,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -911,12 +869,12 @@ const resetPassword = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1001,13 +959,12 @@ const resendEmailVerification = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   message: 'Something happened',
-    //   success: false,
-    //   status: 500,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1058,12 +1015,12 @@ const getSingleStudent = async (req, res) => {
       enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1195,12 +1152,12 @@ const getAllStudents = async (req, res) => {
       studentObject,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      status: 500,
-      success: false,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1238,24 +1195,24 @@ const getStudentsBySearch = async (req, res) => {
       students,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-      status: 500,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
 const subscribeToCourse = async (req, res) => {
   try {
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-      status: 500,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

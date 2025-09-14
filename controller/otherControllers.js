@@ -1,6 +1,7 @@
 import FeedBack from '../model/feedBackModel.js';
 import ContactUs from '../model/contactUsModel.js';
 import EmailSubscription from '../model/emailSubscriptionModel.js';
+import { AppError } from '../utils/app.error.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -66,12 +67,12 @@ const feedBack = async (req, res) => {
       sender: newFeedBack.name,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      success: false,
-      status: 500,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -137,12 +138,12 @@ const contactUs = async (req, res) => {
       sender: newContactUs.name,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      success: false,
-      status: 500,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -188,12 +189,12 @@ const emailSubscription = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      success: false,
-      status: 500,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

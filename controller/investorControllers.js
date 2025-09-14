@@ -10,11 +10,12 @@ import {
   generateAccessToken,
   generateRefreshToken,
   jwtDecodeRefreshToken,
-} from '../utils/jwtAuth.js';
+} from '../middleware/jwtAuth.js';
 import { RefreshToken } from '../model/refreshToken.js';
 import BlackListedToken from '../model/blackListedmodel.js';
 import jwt from 'jsonwebtoken';
 import { getUserRefreshTokenDetails } from '../repository/tokenRepository.js';
+import { AppError } from '../utils/app.error.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -49,11 +50,7 @@ const registerInvestor = async (req, res, next) => {
       !gender ||
       !DOB
     ) {
-      return res.json({
-        error: 'Please fill all mandatory fields',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Please fill all mandatory fields', 400);
     }
 
     const trimmedFirstName = firstName.trim();
@@ -65,52 +62,31 @@ const registerInvestor = async (req, res, next) => {
     const trimmedMiddleName = middleName.trim();
 
     if (forbiddenCharsRegex.test(trimmedFirstName)) {
-      return res.json({
-        error: `Invalid character in first name field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in first name field`, 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedLastName)) {
-      return res.json({
-        error: `Invalid character in last name field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in last name field`, 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
-      return res.json({
-        error: `Invalid character in address field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in address field`, 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-      return res.json({
-        error: `Invalid character in country of residence field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        `Invalid character in country of residence field`,
+        400
+      );
     }
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-      return res.json({
-        error: `Invalid character in state of residence field`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Invalid character in state of residence field`, 400);
     }
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     // // strong password check
@@ -229,12 +205,12 @@ const registerInvestor = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   status: 500,
-    //   success: false,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -279,12 +255,12 @@ const verifyInvestorEmail = async (req, res) => {
       investor: others,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -413,13 +389,12 @@ const loginInvestor = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   message: 'Something happened',
-    //   status: 500,
-    //   success: false,
-    //   error: error.message,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -580,12 +555,12 @@ const updateInvestor = async (req, res) => {
       user: others,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -626,12 +601,12 @@ const getInvestor = async (req, res) => {
       user: others,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -717,12 +692,12 @@ const investorLogout = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -789,13 +764,12 @@ const forgotPassword = async (req, res, next) => {
       }
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   message: 'Something happened',
-    //   success: false,
-    //   status: 500,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -870,12 +844,12 @@ const resetPassword = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      message: 'Something happened',
-      success: false,
-      status: 500,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -960,13 +934,12 @@ const resendEmailVerification = async (req, res, next) => {
       });
     }
   } catch (error) {
-    throw new Error(error);
-    // return res.json({
-    //   error: error.message,
-    //   message: 'Something happened',
-    //   success: false,
-    //   status: 500,
-    // });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -996,12 +969,12 @@ const getSingleInvestor = async (req, res) => {
       investor: others,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: 'Something happened',
-      status: 500,
-      success: false,
-      error: error.message,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1132,12 +1105,12 @@ const getAllInvestors = async (req, res) => {
       investorObject,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      status: 500,
-      success: false,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -1185,24 +1158,24 @@ const getInvestorsBySearch = async (req, res) => {
       investors,
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      status: 500,
-      success: false,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
 const invest = async (req, res) => {
   try {
   } catch (error) {
-    return res.json({
-      error: error.message,
-      success: false,
-      status: 500,
-      message: 'Something happened',
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

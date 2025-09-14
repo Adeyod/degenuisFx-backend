@@ -214,6 +214,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
       }
 
       const fullName = `${student.firstName} ${student.lastName}`;
+      console.log('fullName:', fullName);
 
       if (status === 'success') {
         if (transaction.trainingFee > transaction.currentPayment) {

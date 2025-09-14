@@ -6,6 +6,7 @@ import {
   getTrainingUsingPreferedClassMode,
   getTrainingUsingTrainingIdAndTrainingFee,
 } from '../repository/trainingRepository.js';
+import { AppError } from '../utils/app.error.js';
 import {
   paymentStatus,
   enrollmentStatus,
@@ -254,12 +255,12 @@ const makePayment = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -273,12 +274,12 @@ const getPaymentTransactionResponseFromPaystackWebhook = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -302,12 +303,12 @@ const getPaystackCallBack = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -406,12 +407,12 @@ const balancePayment = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -449,12 +450,12 @@ const resetPaymentDoc = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -537,12 +538,12 @@ const confirmPaystackAuthUrlValidity = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

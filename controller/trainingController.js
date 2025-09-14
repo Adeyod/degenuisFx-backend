@@ -1,4 +1,5 @@
 import Training from '../model/trainingModel.js';
+import { AppError } from '../utils/app.error.js';
 import { createTrainingSchema } from '../utils/validation.js';
 
 const createTraining = async (req, res) => {
@@ -35,12 +36,12 @@ const createTraining = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -96,12 +97,12 @@ const updateTrainingFees = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 
@@ -124,12 +125,12 @@ const getTrainingDoc = async (req, res) => {
       training: training[0],
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

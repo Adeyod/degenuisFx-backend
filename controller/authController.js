@@ -4,7 +4,7 @@ import { findUserById } from '../repository/userRepository.js';
 import {
   generateAccessToken,
   jwtDecodeRefreshToken,
-} from '../utils/jwtAuth.js';
+} from '../middleware/jwtAuth.js';
 
 const requestAccessToken = async (req, res) => {
   try {

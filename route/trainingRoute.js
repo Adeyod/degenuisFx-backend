@@ -4,7 +4,7 @@ import {
   getTrainingDoc,
   updateTrainingFees,
 } from '../controller/trainingController.js';
-import { verifyAccessToken } from '../utils/jwtAuth.js';
+import { verifyAccessToken } from '../middleware/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
 
 const router = express.Router();
