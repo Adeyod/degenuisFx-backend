@@ -7,6 +7,7 @@ import {
 } from '../utils/enumModules.js';
 import Enrollment from '../model/enrollmentModel.js';
 import { paymentEnrollmentConfirmationMail } from '../utils/nodemailer.js';
+import { AppError } from '../utils/app.error.js';
 
 const saveInitializedPayment = async (data) => {
   const {
@@ -31,11 +32,7 @@ const saveInitializedPayment = async (data) => {
   const findStudent = await Student.findById(userId);
 
   if (!findStudent) {
-    return res.status(404).json({
-      error: 'Student not found',
-      success: false,
-      status: 404,
-    });
+    throw new AppError('Student not found', 404);
   }
 
   let enrollment;
@@ -63,11 +60,7 @@ const saveInitializedPayment = async (data) => {
   }
 
   if (!enrollment) {
-    return res.status(400).json({
-      error: 'Unable to create enrollment',
-      success: false,
-      status: 400,
-    });
+    throw new AppError('Unable to create enrollment', 400);
   }
 
   const summary = {
@@ -140,7 +133,7 @@ const saveInitializedBalance = async (data) => {
   const paymentDoc = await Payment.findById({ _id: paymentId });
 
   if (!paymentDoc) {
-    throw new Error('Payment document not found.', 404);
+    throw new AppError('Payment document not found.', 404);
   }
 
   const summary = {
@@ -170,7 +163,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
     });
 
     if (!transaction) {
-      throw new Error(
+      throw new AppError(
         `Payment transaction with reference NO: ${reference} is not found`,
         404
       );
@@ -181,7 +174,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
     );
 
     if (!actualPayment) {
-      throw new Error(
+      throw new AppError(
         `Actual Payment transaction with reference NO: ${reference} is not found`,
         404
       );
@@ -192,7 +185,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
     });
 
     if (!enrollment) {
-      throw new Error('Enrollment not found.', 404);
+      throw new AppError('Enrollment not found.', 404);
     }
 
     if (actualPayment.transactionStatus === 'pending') {
@@ -206,11 +199,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
       console.log('student:', student);
 
       if (!student) {
-        return res.status(404).json({
-          status: 404,
-          success: false,
-          error: 'Student not found.',
-        });
+        throw new AppError('Student not found', 404);
       }
 
       const fullName = `${student.firstName} ${student.lastName}`;
@@ -275,7 +264,12 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
     return transaction;
   } catch (error) {
-    throw new Error(error);
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.log(error);
+      throw new Error('Something happened.');
+    }
   }
 };
 
@@ -302,7 +296,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
       !authorizationUrl ||
       !paymentId
     ) {
-      throw new Error(
+      throw new AppError(
         'Please provide all needed data to process paystack initialization return.',
         400
       );
@@ -311,7 +305,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
     const findPayment = await Payment.findById(paymentId);
 
     if (!findPayment) {
-      throw new Error('Payment document not found.', 404);
+      throw new AppError('Payment document not found.', 404);
     }
 
     const enrollment = await Enrollment.findById({
@@ -319,7 +313,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
     });
 
     if (!enrollment) {
-      throw new Error('Enrollment document not found.', 404);
+      throw new AppError('Enrollment document not found.', 404);
     }
 
     const updatedActualDoc = findPayment.paymentSummary.find(
@@ -327,7 +321,7 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
     );
 
     if (!updatedActualDoc) {
-      throw new Error('Actual payment document object not found.', 404);
+      throw new AppError('Actual payment document object not found.', 404);
     }
 
     // if (findPayment.trainingFee > updatedActualDoc.amountPaid) {
@@ -348,11 +342,12 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
 
     return findPayment;
   } catch (error) {
-    console.log('error:', error);
-    throw new Error(
-      'Unable to update payment with paystack initialization details.',
-      500
-    );
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.log(error);
+      throw new Error('Something happened.');
+    }
   }
 };
 

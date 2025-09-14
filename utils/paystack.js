@@ -7,6 +7,7 @@ import {
 } from '../repository/paymentRepository.js';
 import { paymentModeEnum } from './enumModules.js';
 import crypto from 'crypto';
+import { AppError } from './app.error.js';
 
 const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
@@ -40,7 +41,10 @@ const payStackInitialized = async (payload) => {
   );
 
   if (isNaN(amt)) {
-    throw new Error('Invalid amount provided. Please provide a valid number');
+    throw new AppError(
+      'Invalid amount provided. Please provide a valid number',
+      400
+    );
   }
 
   const data = {
@@ -68,7 +72,7 @@ const payStackInitialized = async (payload) => {
   const result = await saveInitializedPayment(data);
 
   if (!result) {
-    throw new Error(
+    throw new AppError(
       'Unable to save Payment initialization before sending to paystack.',
       400
     );
@@ -120,7 +124,10 @@ const payStackPaymentBalanceInitialized = async (payload) => {
   );
 
   if (isNaN(amt)) {
-    throw new Error('Invalid amount provided. Please provide a valid number');
+    throw new AppError(
+      'Invalid amount provided. Please provide a valid number',
+      400
+    );
   }
 
   const data = {
@@ -143,7 +150,7 @@ const payStackPaymentBalanceInitialized = async (payload) => {
   const result = await saveInitializedBalance(data);
 
   if (!result) {
-    throw new Error(
+    throw new AppError(
       'Unable to save balance initialization before sending to paystack.',
       400
     );
@@ -255,8 +262,9 @@ const paystackWebHook = async (req, res) => {
         const amt = parseFloat(amountPaid.toString().replace(/,/g, ''));
 
         if (isNaN(amt)) {
-          throw new Error(
-            'Invalid amount provided. Please provide a valid number'
+          throw new AppError(
+            'Invalid amount provided. Please provide a valid number',
+            400
           );
         }
 

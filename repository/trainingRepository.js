@@ -4,7 +4,7 @@ const getTrainingUsingPreferedClassMode = async (classMode) => {
   try {
     const findTrainingFee = await Training.find();
     if (findTrainingFee.length === 0) {
-      throw new Error('Training fee not found.', 404);
+      throw new AppError('Training fee not found.', 404);
     }
 
     // console.log('findTrainingFee:', findTrainingFee);
@@ -14,7 +14,7 @@ const getTrainingUsingPreferedClassMode = async (classMode) => {
     );
     // console.log('actualClassMode:', actualClassMode);
     if (!actualClassMode) {
-      throw new Error(`Invalid ${classMode} class mode.`, 400);
+      throw new AppError(`Invalid ${classMode} class mode.`, 400);
     }
 
     const objToSend = {
@@ -25,7 +25,12 @@ const getTrainingUsingPreferedClassMode = async (classMode) => {
     console.log('objToSend:', objToSend);
     return objToSend;
   } catch (error) {
-    throw new Error('Unable to get training fee.', 500);
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.log(error);
+      throw new Error('Something happened.');
+    }
   }
 };
 
@@ -36,7 +41,7 @@ const getTrainingUsingTrainingIdAndTrainingFee = async (id, fee) => {
     // console.log('findTrainingFee:', findTrainingFee);
 
     if (!findTrainingFee) {
-      throw new Error('Training fee not found.', 404);
+      throw new AppError('Training fee not found.', 404);
     }
 
     // console.log('findTrainingFee:', findTrainingFee);
@@ -46,7 +51,7 @@ const getTrainingUsingTrainingIdAndTrainingFee = async (id, fee) => {
     );
     // console.log('actualClassMode:', actualClassMode);
     if (!actualClassMode) {
-      throw new Error(`Invalid training fee.`, 400);
+      throw new AppError(`Invalid training fee.`, 400);
     }
 
     const objToSend = {
@@ -57,7 +62,12 @@ const getTrainingUsingTrainingIdAndTrainingFee = async (id, fee) => {
     console.log('objToSend:', objToSend);
     return objToSend;
   } catch (error) {
-    throw new Error('Unable to get training fee.', 500);
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.log(error);
+      throw new Error('Something happened.');
+    }
   }
 };
 

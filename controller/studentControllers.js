@@ -80,20 +80,10 @@ const registerStudent = async (req, res, next) => {
 
     if (forbiddenCharsRegex.test(trimmedLastName)) {
       throw new AppError(`Invalid character in last name field`, 400);
-      // return res.status(400).json({
-      //   error: `Invalid character in last name field`,
-      //   status: 400,
-      //   success: false,
-      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
       throw new AppError(`Invalid character in address field`, 400);
-      // return res.status(400).json({
-      //   error: `Invalid character in address field`,
-      //   status: 400,
-      //   success: false,
-      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
@@ -101,12 +91,6 @@ const registerStudent = async (req, res, next) => {
         `Invalid character in country of residence field`,
         400
       );
-
-      // return res.status(400).json({
-      //   error: `Invalid character in country of residence field`,
-      //   status: 400,
-      //   success: false,
-      // });
     }
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
@@ -279,11 +263,7 @@ const loginStudent = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({
-        error: 'All fields are required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     const isStudent = await Student.findOne({
@@ -291,20 +271,12 @@ const loginStudent = async (req, res, next) => {
     });
 
     if (!isStudent) {
-      return res.status(400).json({
-        error: 'Invalid credentials',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid credentials', 400);
     }
 
     const validPassword = await bcrypt.compare(password, isStudent.password);
     if (!validPassword) {
-      return res.status(400).json({
-        error: 'Invalid credential',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid credentials', 400);
     }
 
     if (isStudent.isVerified === false) {
@@ -325,12 +297,10 @@ const loginStudent = async (req, res, next) => {
           next
         );
 
-        return res.status(400).json({
-          error:
-            'Please use the mail sent to your email address to verify your email',
-          success: false,
-          status: 400,
-        });
+        throw new AppError(
+          'Please use the mail sent to your email address to verify your email',
+          400
+        );
       }
 
       const token =
@@ -346,12 +316,10 @@ const loginStudent = async (req, res, next) => {
 
       await emailVerification(isStudent.email, isStudent.firstName, link, next);
 
-      return res.status(400).json({
-        error:
-          'Please use the mail sent to your email address to verify your email',
-        success: false,
-        status: 400,
-      });
+      throw new AppError(
+        'Please use the mail sent to your email address to verify your email',
+        400
+      );
     } else {
       const { password, ...others } = isStudent._doc;
 
@@ -389,11 +357,7 @@ const loginStudent = async (req, res, next) => {
       }).save();
 
       if (!jwtSign) {
-        return res.status(400).json({
-          error: 'Unable to sign user',
-          status: 400,
-          success: false,
-        });
+        throw new AppError('Unable to sign user', 400);
       }
       return res.status(200).json({
         message: `${others.role} login successfully`,
@@ -452,11 +416,7 @@ const updateStudent = async (req, res) => {
       // !questionsAndComments ||
       // !acknowledgment
     ) {
-      return res.status(400).json({
-        error: 'All fields are required...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required...', 400);
     }
 
     const trimmedAddress = address.trim();
@@ -465,35 +425,25 @@ const updateStudent = async (req, res) => {
     const trimmedPreferredTrainingDays = preferredTrainingDays.trim();
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-      return res.status(400).json({
-        error: 'Invalid character at state of residence',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid character at state of residence', 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-      return res.status(400).json({
-        error: 'Invalid character at country of residence field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        'Invalid character at country of residence field',
+        400
+      );
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
-      return res.status(400).json({
-        error: 'Invalid character at address field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid character at address field', 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedPreferredTrainingDays)) {
-      return res.status(400).json({
-        error: 'Invalid character at preferred training days field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        'Invalid character at preferred training days field',
+        400
+      );
     }
 
     const user = req.user.userId;
@@ -501,10 +451,7 @@ const updateStudent = async (req, res) => {
     const { studentId } = req.params;
 
     if (user !== studentId) {
-      return res.status(401).json({
-        error: 'Not the authorized user',
-        status: 401,
-      });
+      throw new AppError('Not the authorized user', 400);
     }
 
     const findAndUpdateStudent = await Student.findByIdAndUpdate(
@@ -532,11 +479,7 @@ const updateStudent = async (req, res) => {
     );
 
     if (!findAndUpdateStudent) {
-      return res.status(404).json({
-        error: 'unable to update student',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('unable to update student', 404);
     }
 
     const { password, ...others } = findAndUpdateStudent._doc;
@@ -584,10 +527,7 @@ const getStudent = async (req, res) => {
     const { studentId } = req.params;
 
     if (user !== studentId) {
-      return res.status(401).json({
-        error: 'Not the authorized user',
-        status: 401,
-      });
+      throw new AppError('Not the authorized user', 401);
     }
 
     const studentDetails = await Student.findById({
@@ -595,11 +535,7 @@ const getStudent = async (req, res) => {
     });
 
     if (!studentDetails) {
-      return res.status(404).json({
-        error: 'Student not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Student not found', 404);
     }
 
     const training = await Training.find();
@@ -803,11 +739,7 @@ const resetPassword = async (req, res) => {
     const { userId, token } = req.params;
     const { password, confirmPassword } = req.body;
     if (!password || !confirmPassword) {
-      return res.status(400).json({
-        status: 400,
-        error: 'All fields are required',
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     // strong password check
@@ -816,20 +748,14 @@ const resetPassword = async (req, res) => {
         password
       )
     ) {
-      return res.status(401).json({
-        error:
-          'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
-        success: false,
-        status: 401,
-      });
+      throw new AppError(
+        'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+        400
+      );
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: 'Password and confirm password do not match',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Password and confirm password do not match', 400);
     }
 
     const findToken = await StudentToken.findOne({
@@ -838,11 +764,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findToken) {
-      return res.status(404).json({
-        error: 'Token not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Token not found', 404);
     }
 
     const findUser = await Student.findById({
@@ -850,11 +772,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findUser) {
-      return res.status(404).json({
-        error: 'User not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('User not found', 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -882,40 +800,24 @@ const resendEmailVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
-        error: 'Email is required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email is required', 400);
     }
 
     const trimmedEmail = email.trim();
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.status(400).json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     const findUser = await Student.findOne({ email: trimmedEmail });
 
     if (!findUser) {
-      return res.status(404).json({
-        error: 'User not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('User not found', 404);
     }
 
     if (findUser.isVerified === true) {
-      return res.status(400).json({
-        error: 'User already verified',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('User already verified', 400);
     }
 
     const checkTokenExist = await StudentToken.findOne({
@@ -978,11 +880,7 @@ const getSingleStudent = async (req, res) => {
     });
 
     if (!studentDetails) {
-      return res.status(404).json({
-        error: 'Student not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Student not found', 404);
     }
 
     const { password, ...others } = studentDetails._doc;
@@ -1103,11 +1001,7 @@ const getAllStudents = async (req, res) => {
     }
 
     if (!query) {
-      return res.status(404).json({
-        error: 'Students not found.',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Students not found.', 404);
     }
 
     const count = await query.clone().countDocuments();
@@ -1122,21 +1016,13 @@ const getAllStudents = async (req, res) => {
       pages = Math.ceil(count / limit);
 
       if (page > pages) {
-        return res.status(404).json({
-          error: 'Page can not be found.',
-          status: 404,
-          success: false,
-        });
+        throw new AppError('Page can not be found.', 404);
       }
     }
     const response = await query.sort({ createdAt: -1 });
 
     if (!response || response.length === 0) {
-      return res.status(404).json({
-        error: 'Students not found.',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Students not found.', 404);
     }
 
     const studentObject = {
@@ -1180,11 +1066,7 @@ const getStudentsBySearch = async (req, res) => {
     }).select('-password');
 
     if (!students || students.length === 0 || students === null) {
-      return res.status(404).json({
-        error: 'No matching students found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('No matching students found', 404);
     }
 
     return res.status(200).json({

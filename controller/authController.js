@@ -12,11 +12,7 @@ const requestAccessToken = async (req, res) => {
 
     console.log('refreshToken:', refreshToken);
     if (!refreshToken) {
-      return res.status(404).json({
-        error: `Please provide a refresh token.`,
-        status: 404,
-        success: false,
-      });
+      throw new AppError(`Please provide a refresh token.`, 400);
     }
     const decodeTokenResponse = await jwtDecodeRefreshToken(refreshToken);
 
@@ -26,11 +22,7 @@ const requestAccessToken = async (req, res) => {
     );
 
     if (!tokenResponse) {
-      return res.status(404).json({
-        error: `Token does not exist or token has expired.`,
-        status: 404,
-        success: false,
-      });
+      throw new AppError(`Token does not exist or token has expired.`, 404);
     }
 
     console.log('tokenResponse:', tokenResponse);
@@ -42,22 +34,14 @@ const requestAccessToken = async (req, res) => {
     console.log('compareToken:', compareToken);
 
     if (!compareToken) {
-      return res.status(404).json({
-        error: `Invalid token.`,
-        status: 404,
-        success: false,
-      });
+      throw new AppError(`Invalid token.`, 404);
     }
 
     const user = await findUserById(tokenResponse.userId);
     console.log('user:', user);
 
     if (!user) {
-      return res.status(404).json({
-        error: `Invalid user.`,
-        status: 404,
-        success: false,
-      });
+      throw new AppError(`Invalid user.`, 404);
     }
 
     const newAccessToken = await generateAccessToken(
@@ -68,11 +52,7 @@ const requestAccessToken = async (req, res) => {
     console.log('newAccessToken:', newAccessToken);
 
     if (!newAccessToken) {
-      return res.status(400).json({
-        error: ` Unable to generate a new access token.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Unable to generate a new access token.`, 400);
     }
 
     const { password: hashValue, ...others } = user.toObject();
@@ -86,12 +66,12 @@ const requestAccessToken = async (req, res) => {
       status: 200,
     });
   } catch (error) {
-    return res.json({
-      message: 'Something happened',
-      error: error.message,
-      status: 500,
-      success: false,
-    });
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.statusCode);
+    } else {
+      console.error(error);
+      throw new Error('Something went wrong');
+    }
   }
 };
 

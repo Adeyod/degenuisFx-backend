@@ -10,11 +10,7 @@ const feedBack = async (req, res) => {
     const { name, email, message, rating } = req.body;
 
     if (!name || !email || !rating) {
-      return res.json({
-        error: 'All fields are required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     const trimmedName = name.trim();
@@ -22,28 +18,16 @@ const feedBack = async (req, res) => {
     const trimmedMessage = message.trim();
 
     if (forbiddenCharsRegex.test(trimmedName)) {
-      return res.json({
-        error: 'Invalid input in the field name',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input in the field name', 400);
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     if (message !== '') {
       if (forbiddenCharsRegex.test(trimmedMessage)) {
-        return res.json({
-          error: 'Invalid input for field message',
-          success: false,
-          status: 400,
-        });
+        throw new AppError('Invalid input for field message', 400);
       }
     }
 
@@ -55,9 +39,7 @@ const feedBack = async (req, res) => {
     }).save();
 
     if (!newFeedBack) {
-      return res.json({
-        error: 'Unable to save feedback',
-      });
+      throw new AppError('Unable to save feedback', 400);
     }
 
     return res.json({
@@ -81,11 +63,7 @@ const contactUs = async (req, res) => {
     const { name, email, phoneNumber, message, howToFindUs } = req.body;
 
     if (!name || !email || !message || !phoneNumber) {
-      return res.json({
-        error: 'All fields are required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     const trimmedName = name.trim();
@@ -93,28 +71,16 @@ const contactUs = async (req, res) => {
     const trimmedMessage = message.trim();
 
     if (forbiddenCharsRegex.test(trimmedName)) {
-      return res.json({
-        error: 'Invalid input in the field name',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input in the field name', 400);
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     if (message !== '') {
       if (forbiddenCharsRegex.test(trimmedMessage)) {
-        return res.json({
-          error: 'Invalid input for field message',
-          success: false,
-          status: 400,
-        });
+        throw new AppError('Invalid input for field message', 400);
       }
     }
 
@@ -126,9 +92,7 @@ const contactUs = async (req, res) => {
     }).save();
 
     if (!newContactUs) {
-      return res.json({
-        error: 'Unable to save contact us message',
-      });
+      throw new AppError('Unable to save contact us message', 400);
     }
 
     return res.json({
@@ -154,11 +118,7 @@ const emailSubscription = async (req, res) => {
     const trimmedEmail = email.trim();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     const emailExist = await EmailSubscription.findOne({
@@ -166,11 +126,7 @@ const emailSubscription = async (req, res) => {
     });
 
     if (emailExist) {
-      return res.json({
-        error: 'Email already exist',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email already exist', 400);
     }
 
     const newEmailSubscription = await new EmailSubscription({
@@ -178,9 +134,7 @@ const emailSubscription = async (req, res) => {
     }).save();
 
     if (!newEmailSubscription) {
-      return res.json({
-        error: 'Unable to save email',
-      });
+      throw new AppError('Unable to save email', 400);
     }
 
     return res.json({

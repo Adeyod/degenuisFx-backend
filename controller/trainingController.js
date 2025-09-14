@@ -9,11 +9,7 @@ const createTraining = async (req, res) => {
     const { error, value } = createTrainingSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({
-        error: error.details[0].message,
-        success: false,
-        status: 400,
-      });
+      throw new AppError(error.details[0].message, 400);
     }
     const newTraining = new Training({
       title: title,
@@ -29,11 +25,7 @@ const createTraining = async (req, res) => {
         status: 201,
       });
     } else {
-      return res.status(400).json({
-        message: 'Unable to create training',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to create training', 400);
     }
   } catch (error) {
     if (error instanceof AppError) {
@@ -52,21 +44,13 @@ const updateTrainingFees = async (req, res) => {
     const { error, value } = createTrainingSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({
-        error: error.details[0].message,
-        success: false,
-        status: 400,
-      });
+      throw new AppError(error.details[0].message, 400);
     }
 
     const training = await Training.findOne({ title: value.title });
 
     if (!training) {
-      return res.status(404).json({
-        message: 'Training not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Training not found', 404);
     }
 
     for (const classMode of training.classModes) {
@@ -90,11 +74,7 @@ const updateTrainingFees = async (req, res) => {
         updatedTraining,
       });
     } else {
-      return res.status(400).json({
-        message: 'Unable to update training fee',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to update training fee', 400);
     }
   } catch (error) {
     if (error instanceof AppError) {
@@ -111,11 +91,7 @@ const getTrainingDoc = async (req, res) => {
     const training = await Training.find();
 
     if (!training || training.length === 0) {
-      return res.status(404).json({
-        message: 'Training not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Training not found', 404);
     }
 
     return res.status(200).json({

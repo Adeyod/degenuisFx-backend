@@ -63,14 +63,10 @@ const makePayment = async (req, res) => {
     );
 
     if (missingField) {
-      return res.status(400).json({
-        error: `Please provide ${missingField[0].replace(
-          '_',
-          ' '
-        )} to proceed.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        `Please provide ${missingField[0].replace('_', ' ')} to proceed.`,
+        400
+      );
     }
 
     const payload = {
@@ -85,39 +81,23 @@ const makePayment = async (req, res) => {
     const { error, value } = paymentSchema.validate(payload);
 
     if (error) {
-      return res.status(400).json({
-        error: error.details[0].message,
-        success: false,
-        status: 400,
-      });
+      throw new AppError(error.details[0].message, 400);
     }
 
     const backendNextPaymentDate = calculateNextPaymentDay();
 
     if (!preferedClassModeEnum.includes(preferedClassMode)) {
-      return res.status(400).json({
-        error: 'Invalid class mode',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Invalid class mode', 400);
     }
 
     if (!paymentModeEnum.includes(paymentMode)) {
-      return res.status(400).json({
-        error: 'Invalid payment mode',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Invalid payment mode', 400);
     }
 
     const userExist = await Student.findById(user.userId);
 
     if (!userExist) {
-      return res.status(404).json({
-        error: 'User not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('User not found', 404);
     }
 
     // fetch training document here so as to get the training fee for the class mode
@@ -125,11 +105,7 @@ const makePayment = async (req, res) => {
     const training = await getTrainingUsingPreferedClassMode(preferedClassMode);
 
     if (!training) {
-      return res.status(404).json({
-        message: 'Training does not exist',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Training does not exist', 404);
     }
 
     const paymentDocExist = await Payment.findOne({
@@ -139,21 +115,13 @@ const makePayment = async (req, res) => {
     });
 
     if (paymentDocExist) {
-      return res.status(400).json({
-        message: 'Student already enrolled for this training.',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Student already enrolled for this training.', 400);
     }
 
     const actualTrainingFee = training.mode.fee;
 
     if (actualTrainingFee !== Number(trainingFee)) {
-      return res.status(400).json({
-        message: 'Invalid training fee',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid training fee', 400);
     }
 
     let acurrateBalance = 0;
@@ -161,11 +129,7 @@ const makePayment = async (req, res) => {
 
     if (paymentMode === paymentModeEnum[1]) {
       if (!nextPaymentDate) {
-        return res.status(400).json({
-          error: `Next payment date is required.`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(`Next payment date is required.`, 400);
       }
 
       const frontendDate = new Date(value.nextPaymentDate);
@@ -173,11 +137,10 @@ const makePayment = async (req, res) => {
       const frontendDateStr = dayjs(frontendDate).format('YYYY-MM-DD');
 
       if (backendNextPaymentDate !== frontendDateStr) {
-        return res.status(400).json({
-          error: `Invalid nextPaymentDate. Expected ${backendNextPaymentDate}, got ${frontendDateStr}.`,
-          success: false,
-          status: 400,
-        });
+        throw new AppError(
+          `Invalid nextPaymentDate. Expected ${backendNextPaymentDate}, got ${frontendDateStr}.`,
+          400
+        );
       } else {
         accurateNextPaymentDate = backendNextPaymentDate;
       }
@@ -185,28 +148,25 @@ const makePayment = async (req, res) => {
       const minimumPayment = actualTrainingFee / 2;
 
       if (amountPaid < minimumPayment) {
-        return res.status(400).json({
-          message: `The minimum amount allowed to be paid for this class is ${minimumPayment}`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(
+          `The minimum amount allowed to be paid for this class is ${minimumPayment}`,
+          400
+        );
       }
 
       acurrateBalance = actualTrainingFee - amountPaid;
       if (balance < acurrateBalance) {
-        return res.status(400).json({
-          message: `The balance expected is not accurate. The balance you are to pay on or before ${backendNextPaymentDate} is $${acurrateBalance}, please ensure you are ok with this before proceeding.`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(
+          `The balance expected is not accurate. The balance you are to pay on or before ${backendNextPaymentDate} is $${acurrateBalance}, please ensure you are ok with this before proceeding.`,
+          400
+        );
       }
     } else if (paymentMode === paymentModeEnum[0]) {
       if (amountPaid < actualTrainingFee) {
-        return res.status(400).json({
-          message: `The actual training fee is $${actualTrainingFee} and this is the amount you are supposed to pay.`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(
+          `The actual training fee is $${actualTrainingFee} and this is the amount you are supposed to pay.`,
+          400
+        );
       }
 
       acurrateBalance = balance;
@@ -242,11 +202,7 @@ const makePayment = async (req, res) => {
     const result = await payStackInitialized(userPayload);
 
     if (!result) {
-      return res.status(400).json({
-        message: 'Unable to process payment.',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to process payment.', 400);
     }
 
     return res.status(200).json({
@@ -290,11 +246,7 @@ const getPaystackCallBack = async (req, res) => {
     const response = await paystackCallBack(reference);
 
     if (!response) {
-      return res.status(400).json({
-        message: 'Unable to process callback.',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Unable to process callback.', 400);
     }
     return res.status(200).json({
       message: 'Callback processed successfully',
@@ -319,45 +271,31 @@ const balancePayment = async (req, res) => {
     const user = req.user;
 
     if (!amountToPay) {
-      return res.json({
-        error: `Amount to pay is required.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Amount to pay is required.`, 400);
     }
 
     const studentPaymentDoc = await Payment.findById({ _id: paymentId });
 
     if (!studentPaymentDoc) {
-      return res.json({
-        error: `Payment Document not found.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Payment Document not found.`, 400);
     }
 
     if (studentPaymentDoc.paymentSummary.length === 2) {
-      return res.json({
-        error: `Payment Summary already has 2 instances.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Payment Summary already has 2 instances.`, 400);
     }
 
     if (amountToPay > studentPaymentDoc.balance) {
-      return res.json({
-        error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
+        400
+      );
     }
 
     if (amountToPay < studentPaymentDoc.balance) {
-      return res.status(400).json({
-        error: `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        `Please put the accurate balance. Your balance is ${studentPaymentDoc.balance}.`,
+        400
+      );
     }
 
     const trainingDoc = await getTrainingUsingTrainingIdAndTrainingFee(
@@ -366,11 +304,7 @@ const balancePayment = async (req, res) => {
     );
 
     if (!trainingDoc) {
-      return res.status(404).json({
-        message: 'Training does not exist',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Training does not exist', 404);
     }
 
     const paymentReferencePayload = {
@@ -393,11 +327,7 @@ const balancePayment = async (req, res) => {
     const result = await payStackPaymentBalanceInitialized(userPayload);
 
     if (!result) {
-      return res.status(400).json({
-        message: 'Unable to process payment.',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to process payment.', 400);
     }
 
     return res.status(200).json({
@@ -425,11 +355,7 @@ const resetPaymentDoc = async (req, res) => {
     });
 
     if (!studentPaymentDoc) {
-      return res.json({
-        error: `Payment Document not found.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Payment Document not found.`, 400);
     }
 
     const studentEnrollmentDoc = await Enrollment.findOneAndDelete({
@@ -437,11 +363,7 @@ const resetPaymentDoc = async (req, res) => {
     });
 
     if (!studentEnrollmentDoc) {
-      return res.json({
-        error: `Enrollment Document not found.`,
-        status: 400,
-        success: false,
-      });
+      throw new AppError(`Enrollment Document not found.`, 400);
     }
 
     return res.status(200).json({
@@ -510,19 +432,11 @@ const confirmPaystackAuthUrlValidity = async (req, res) => {
           { new: true }
         );
         console.log('actualPaymentSummary:', actualPaymentSummary);
-        return res.status(400).json({
-          message: 'authorization url expired.',
-          status: 400,
-          success: false,
-        });
+        throw new AppError('authorization url expired.', 400);
       } else {
         await paymentDoc.deleteOne();
         await enrollment.deleteOne();
-        return res.status(400).json({
-          message: 'authorization url expired.',
-          status: 400,
-          success: false,
-        });
+        throw new AppError('authorization url expired.', 400);
       }
     } else if (response.message === 'Authorization URL still valid.') {
       // console.log('response.message for valid URL:', response.message);

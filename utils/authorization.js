@@ -1,5 +1,6 @@
 import Investor from '../model/investorModel.js';
 import Student from '../model/studentModel.js';
+import { AppError } from './app.error.js';
 
 // const permission = (requiredRoles) => {
 //   return async (req, res, next) => {
@@ -88,7 +89,7 @@ const permission = (requiredRoles) => {
 
       if (!hasRole) {
         return next(
-          new Error('You are not authorized to view this resource.', 403)
+          new AppError('You are not authorized to view this resource.', 403)
         );
       }
       next();

@@ -95,29 +95,19 @@ const registerInvestor = async (req, res, next) => {
         password
       )
     ) {
-      return res.json({
-        error:
-          'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
-        success: false,
-        status: 401,
-      });
+      throw new AppError(
+        'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+        400
+      );
     }
 
     if (password !== confirmPassword) {
-      return res.json({
-        error: 'Password and confirm password do not match',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Password and confirm password do not match', 400);
     }
 
     const alreadyRegistered = await Investor.findOne({ email: trimmedEmail });
     if (alreadyRegistered) {
-      return res.json({
-        error: 'Email already exist',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email already exist', 400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -128,11 +118,7 @@ const registerInvestor = async (req, res, next) => {
 
     if (middleName !== '') {
       if (forbiddenCharsRegex.test(trimmedMiddleName)) {
-        return res.json({
-          error: `Invalid character in middle name field`,
-          status: 400,
-          success: false,
-        });
+        throw new AppError(`Invalid character in middle name field`, 400);
       }
 
       const newInvestor = await new Investor({
@@ -223,11 +209,7 @@ const verifyInvestorEmail = async (req, res) => {
     });
 
     if (!checkToken) {
-      return res.json({
-        error: 'Token can not be found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Token can not be found', 404);
     }
 
     const investorUpdate = await Investor.findByIdAndUpdate(
@@ -237,11 +219,7 @@ const verifyInvestorEmail = async (req, res) => {
     );
 
     if (!investorUpdate) {
-      return res.json({
-        error: 'Unable to update investor',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Unable to update investor', 404);
     }
 
     await checkToken.deleteOne();
@@ -270,11 +248,7 @@ const loginInvestor = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({
-        error: 'All fields are required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     const isInvestor = await Investor.findOne({
@@ -282,20 +256,12 @@ const loginInvestor = async (req, res, next) => {
     });
 
     if (!isInvestor) {
-      return res.status(400).json({
-        error: 'Invalid credentials',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid credentials', 400);
     }
 
     const validPassword = await bcrypt.compare(password, isInvestor.password);
     if (!validPassword) {
-      return res.status(400).json({
-        error: 'Invalid credential',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid credentials', 400);
     }
 
     if (isInvestor.isVerified === false) {
@@ -316,12 +282,10 @@ const loginInvestor = async (req, res, next) => {
           next
         );
 
-        return res.status(400).json({
-          error:
-            'Please use the mail sent to your email address to verify your email',
-          success: false,
-          status: 400,
-        });
+        throw new AppError(
+          'Please use the mail sent to your email address to verify your email',
+          400
+        );
       }
 
       const token =
@@ -342,12 +306,10 @@ const loginInvestor = async (req, res, next) => {
         next
       );
 
-      return res.status(400).json({
-        error:
-          'Please use the mail sent to your email address to verify your email',
-        success: false,
-        status: 400,
-      });
+      throw new AppError(
+        'Please use the mail sent to your email address to verify your email',
+        400
+      );
     } else {
       const { password, ...others } = isInvestor._doc;
 
@@ -373,11 +335,7 @@ const loginInvestor = async (req, res, next) => {
       }).save();
 
       if (!jwtSign) {
-        return res.status(400).json({
-          error: 'Unable to sign user',
-          status: 400,
-          success: false,
-        });
+        throw new AppError('Unable to sign user', 400);
       }
       return res.status(200).json({
         message: 'Investor logged in successfully',
@@ -442,11 +400,7 @@ const updateInvestor = async (req, res) => {
       !phoneNumber ||
       !stateOfResidence
     ) {
-      return res.status(400).json({
-        error: 'All fields are required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     const trimmedNokName = nokName.trim();
@@ -457,64 +411,39 @@ const updateInvestor = async (req, res) => {
     const trimmedStateOfResidence = stateOfResidence.trim();
 
     if (forbiddenCharsRegex.test(trimmedNokName)) {
-      return res.status(400).json({
-        error: 'Invalid character at next-of-kin field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid character at next-of-kin field', 400);
     }
 
     // 0-9+
 
     if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-      return res.status(400).json({
-        error: 'Invalid character at state of residence field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid character at state of residence field', 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-      return res.status(400).json({
-        error: 'Invalid character at country of residence field',
-        status: 400,
-        success: false,
-      });
+      throw new AppError(
+        'Invalid character at country of residence field',
+        400
+      );
     }
 
     if (forbiddenCharsRegex.test(trimmedNokRelationship)) {
-      return res.status(400).json({
-        error: 'Invalid character at next-of-kin relationship',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid character at next-of-kin relationship', 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedAddress)) {
-      return res.status(400).json({
-        error: 'Invalid character at address field',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Invalid character at address field', 400);
     }
 
     if (forbiddenCharsRegex.test(trimmedNokAddress)) {
-      return res.status(400).json({
-        error: 'Invalid character at next-of-kin address field',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Invalid character at next-of-kin address field', 400);
     }
 
     const user = req.user.userId;
     const { investorId } = req.params;
 
     if (user !== investorId) {
-      return res.status(400).json({
-        error: 'Not the authorized user',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Not the authorized user', 400);
     }
 
     const findAndUpdateInvestor = await Investor.findByIdAndUpdate(
@@ -539,11 +468,7 @@ const updateInvestor = async (req, res) => {
     );
 
     if (!findAndUpdateInvestor) {
-      return res.status(404).json({
-        error: 'Investor not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Investor not found', 400);
     }
 
     const { password, ...others } = findAndUpdateInvestor._doc;
@@ -573,11 +498,7 @@ const getInvestor = async (req, res) => {
     console.log('investorId:', investorId);
 
     if (user !== investorId) {
-      return res.status(401).json({
-        error: 'Not the authorized user',
-        status: 401,
-        success: false,
-      });
+      throw new AppError('Not the authorized user', 400);
     }
 
     const investorDetails = await Investor.findById({
@@ -585,11 +506,7 @@ const getInvestor = async (req, res) => {
     });
 
     if (!investorDetails) {
-      return res.status(404).json({
-        error: 'Investor not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Investor not found', 400);
     }
 
     const { password, ...others } = investorDetails._doc;
@@ -621,11 +538,11 @@ const investorLogout = async (req, res) => {
     console.log('userId:', userId);
 
     if (!refreshToken) {
-      throw new Error('Refresh Token is required to proceed.', 400);
+      throw new AppError('Refresh Token is required to proceed.', 400);
     }
 
     if (!accessToken) {
-      throw new Error('No token found in the header.', 400);
+      throw new AppError('No token found in the header.', 400);
     }
 
     const payload = {
@@ -705,31 +622,19 @@ const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
-        error: 'Email is required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email is required', 400);
     }
 
     const trimmedEmail = email.trim();
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.status(400).json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     const findUser = await Investor.findOne({ email });
     if (!findUser) {
-      return res.status(404).json({
-        error: 'Email not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Email not found', 400);
     } else {
       const token =
         crypto.randomBytes(32).toString('hex') +
@@ -750,11 +655,7 @@ const forgotPassword = async (req, res, next) => {
         next
       );
       if (!sendingForgotPassword.response) {
-        return res.status(400).json({
-          error: 'Unable to send email. Please try again',
-          success: false,
-          status: 400,
-        });
+        throw new AppError('Unable to send email. Please try again', 400);
       } else {
         return res.status(200).json({
           message: 'Password reset link has been sent',
@@ -778,11 +679,7 @@ const resetPassword = async (req, res) => {
     const { userId, token } = req.params;
     const { password, confirmPassword } = req.body;
     if (!password || !confirmPassword) {
-      return res.status(400).json({
-        status: 400,
-        error: 'All fields are required',
-        success: false,
-      });
+      throw new AppError('All fields are required', 400);
     }
 
     // strong password check
@@ -791,20 +688,14 @@ const resetPassword = async (req, res) => {
         password
       )
     ) {
-      return res.status(401).json({
-        error:
-          'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
-        success: false,
-        status: 401,
-      });
+      throw new AppError(
+        'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+        401
+      );
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: 'Password and confirm password do not match',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Password and confirm password do not match', 400);
     }
 
     const findToken = await InvestorToken.findOne({
@@ -813,11 +704,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findToken) {
-      return res.status(404).json({
-        error: 'Token not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('Token not found', 404);
     }
 
     const findUser = await Investor.findById({
@@ -825,11 +712,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!findUser) {
-      return res.status(404).json({
-        error: 'User not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('User not found', 404);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -857,40 +740,24 @@ const resendEmailVerification = async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
-        error: 'Email is required',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Email is required', 400);
     }
 
     const trimmedEmail = email.trim();
 
     // check the email field to prevent input of unwanted characters
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      return res.status(400).json({
-        error: 'Invalid input for email...',
-        status: 400,
-        success: false,
-      });
+      throw new AppError('Invalid input for email...', 400);
     }
 
     const findUser = await Investor.findOne({ email: trimmedEmail });
 
     if (!findUser) {
-      return res.status(404).json({
-        error: 'User not found',
-        success: false,
-        status: 404,
-      });
+      throw new AppError('User not found', 404);
     }
 
     if (findUser.isVerified === true) {
-      return res.status(400).json({
-        error: 'User already verified',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('User already verified', 400);
     }
 
     const checkTokenExist = await InvestorToken.findOne({
@@ -953,11 +820,7 @@ const getSingleInvestor = async (req, res) => {
     });
 
     if (!investorDetails) {
-      return res.status(404).json({
-        error: 'Investor not found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Investor not found', 404);
     }
 
     const { password, ...others } = investorDetails._doc;
@@ -1056,11 +919,7 @@ const getAllInvestors = async (req, res) => {
     }
 
     if (!query) {
-      return res.status(404).json({
-        error: 'Investors not found.',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Investor not found', 404);
     }
 
     const count = await query.clone().countDocuments();
@@ -1075,21 +934,13 @@ const getAllInvestors = async (req, res) => {
       pages = Math.ceil(count / limit);
 
       if (page > pages) {
-        return res.status(404).json({
-          error: 'Page can not be found.',
-          status: 404,
-          success: false,
-        });
+        throw new AppError('Page not found', 404);
       }
     }
     const response = await query.sort({ createdAt: -1 });
 
     if (!response || response.length === 0) {
-      return res.status(404).json({
-        error: 'Investors not be found.',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('Investors not found', 404);
     }
 
     const investorObject = {
@@ -1119,11 +970,7 @@ const getInvestorsBySearch = async (req, res) => {
     const { query } = req.query;
 
     if (!query) {
-      return res.status(400).json({
-        error: 'Query parameter must be provided',
-        success: false,
-        status: 400,
-      });
+      throw new AppError('Query parameter must be provided', 400);
     }
 
     const queryWord = query.split(' ').map((word) => new RegExp(word, 'i'));
@@ -1143,11 +990,7 @@ const getInvestorsBySearch = async (req, res) => {
     }).select('-password');
 
     if (!investors || investors.length === 0 || investors === null) {
-      return res.status(404).json({
-        error: 'No matching investors found',
-        status: 404,
-        success: false,
-      });
+      throw new AppError('No matching investors found', 404);
     }
 
     return res.status(200).json({
