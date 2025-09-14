@@ -52,7 +52,7 @@ const emailVerification = async (email, firstName, link, next) => {
     return info;
   } catch (error) {
     console.log(error.message);
-    next(error);
+    throw new Error(error);
   }
 };
 
@@ -72,7 +72,7 @@ const forgotPasswordSender = async (email, link, firstName, next) => {
     return info;
   } catch (error) {
     console.log(error);
-    next(error);
+    throw new Error(error);
   }
 };
 
@@ -105,7 +105,7 @@ const paymentEnrollmentConfirmationMail = async (
     return info;
   } catch (error) {
     console.log(error);
-    next(error);
+    throw new Error(error);
   }
 };
 
@@ -128,7 +128,7 @@ const trainingCompletionCongratulationMail = async (studentName, email) => {
     return info;
   } catch (error) {
     console.log(error);
-    next(error);
+    throw new Error(error);
   }
 };
 

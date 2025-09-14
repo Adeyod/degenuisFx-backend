@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const calculateNextPaymentDay = () => {
   const gracePeriod = 30;
   const today = new Date();
@@ -29,4 +31,22 @@ const generatePaymentReference = (payload) => {
   return ref;
 };
 
-export { calculateNextPaymentDay, generatePaymentReference };
+const getStudentLocation = async (ip) => {
+  try {
+    const { data } = await axios.get(`http://ip-api.com/json/${ip}`);
+    return {
+      country: data.country,
+      region: data.regionName,
+      city: data.city,
+    };
+  } catch (error) {
+    console.error('Error getting location:', error.message);
+    return null;
+  }
+};
+
+export {
+  getStudentLocation,
+  calculateNextPaymentDay,
+  generatePaymentReference,
+};

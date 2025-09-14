@@ -93,7 +93,7 @@ const permission = (requiredRoles) => {
       }
       next();
     } catch (error) {
-      next(error);
+      throw new Error(error);
     }
   };
 };

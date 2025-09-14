@@ -203,6 +203,8 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
         _id: enrollment.studentId,
       });
 
+      console.log('student:', student);
+
       if (status === 'success') {
         if (transaction.trainingFee > transaction.currentPayment) {
           transaction.currentPayment += Number(actualPayment.amountPaid);
@@ -217,15 +219,15 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
           enrollment.enrollmentStatus = enrollmentStatus[3];
           transaction.paymentStatus = paymentStatus[2];
 
-          await paymentEnrollmentConfirmationMail({
-            email: student.email,
-            enrollmentDate: Date.now(),
-            amountPaid: actualPayment.amountPaid,
-            courseType: enrollment.preferedClassMode,
-            paymentstatus: paymentStatus[2],
-            nextPaymentDate: '',
-            fullName: `${student.firstName} ${student.lastName}`,
-          });
+          // await paymentEnrollmentConfirmationMail({
+          //   email: student.email,
+          //   enrollmentDate: Date.now(),
+          //   amountPaid: actualPayment.amountPaid,
+          //   courseType: enrollment.preferedClassMode,
+          //   paymentstatus: paymentStatus[2],
+          //   nextPaymentDate: '',
+          //   fullName: `${student.firstName} ${student.lastName}`,
+          // });
         } else if (
           Number(actualPayment.amountPaid) < Number(transaction.trainingFee)
         ) {

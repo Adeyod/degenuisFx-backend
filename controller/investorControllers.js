@@ -229,7 +229,7 @@ const registerInvestor = async (req, res, next) => {
       });
     }
   } catch (error) {
-    next(error);
+    throw new Error(error);
     // return res.json({
     //   error: error.message,
     //   status: 500,
@@ -413,7 +413,7 @@ const loginInvestor = async (req, res, next) => {
       });
     }
   } catch (error) {
-    next(error);
+    throw new Error(error);
     // return res.json({
     //   message: 'Something happened',
     //   status: 500,
@@ -789,7 +789,7 @@ const forgotPassword = async (req, res, next) => {
       }
     }
   } catch (error) {
-    next(error);
+    throw new Error(error);
     // return res.json({
     //   error: error.message,
     //   message: 'Something happened',
@@ -960,7 +960,7 @@ const resendEmailVerification = async (req, res, next) => {
       });
     }
   } catch (error) {
-    next(error);
+    throw new Error(error);
     // return res.json({
     //   error: error.message,
     //   message: 'Something happened',

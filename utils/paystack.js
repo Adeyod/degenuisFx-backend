@@ -212,6 +212,8 @@ const paystackCallBack = async (reference) => {
 
     const paystackResponse = await axios(url, { headers });
 
+    console.log('callback paystackResponse:', paystackResponse);
+
     if (paystackResponse.data.data.status === 'success') {
       const data = {
         amount: paystackResponse.data.data.amount / 100,
@@ -238,6 +240,8 @@ const paystackWebHook = async (req, res) => {
 
     if (hash == req.headers['x-paystack-signature']) {
       const event = req.body;
+      console.log('webhook event.event:', event.event);
+
       if (event.event === 'charge.success') {
         // GET ACCOUNT USING ACCOUNT ID AND USER ID
         const {

@@ -15,6 +15,7 @@ import {
 import {
   calculateNextPaymentDay,
   generatePaymentReference,
+  getStudentLocation,
 } from '../utils/functions.js';
 import {
   paystackCallBack,
@@ -29,6 +30,16 @@ import dayjs from 'dayjs';
 const makePayment = async (req, res) => {
   try {
     const user = req.user;
+
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0] ||
+      req.connection.remoteAddress;
+
+    console.log('ip:', ip);
+
+    const studentLocation = await getStudentLocation(ip);
+
+    console.log('studentLocation:', studentLocation);
 
     const {
       preferedClassMode,
@@ -216,6 +227,7 @@ const makePayment = async (req, res) => {
       trainingFee: actualTrainingFee,
       // trainingFee: value.trainingFee,
       amountPaid: value.amountPaid,
+      // nairaValue:
       balance: acurrateBalance,
       companyPaymentReference: reference,
       nextPaymentDate:
