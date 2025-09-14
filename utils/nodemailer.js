@@ -86,6 +86,13 @@ const paymentEnrollmentConfirmationMail = async (
   fullName
 ) => {
   try {
+    console.log('paymentEnrollmentConfirmationMail:', email);
+    console.log('paymentEnrollmentConfirmationMail:', enrollmentDate);
+    console.log('paymentEnrollmentConfirmationMail:', amountPaid);
+    console.log('paymentEnrollmentConfirmationMail:', courseType);
+    console.log('paymentEnrollmentConfirmationMail:', paymentStatus);
+    console.log('paymentEnrollmentConfirmationMail:', nextPaymentDate);
+    console.log('paymentEnrollmentConfirmationMail:', fullName);
     const paymentEnrollmentConfirmationContent =
       paymentEnrollmentConfirmationTemplate
         .replace('{{enrollmentDate}}', enrollmentDate)

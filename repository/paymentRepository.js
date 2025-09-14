@@ -205,6 +205,16 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
       console.log('student:', student);
 
+      if (!student) {
+        return res.status(404).json({
+          status: 404,
+          success: false,
+          error: 'Student not found.',
+        });
+      }
+
+      const fullName = `${student.firstName} ${student.lastName}`;
+
       if (status === 'success') {
         if (transaction.trainingFee > transaction.currentPayment) {
           transaction.currentPayment += Number(actualPayment.amountPaid);
@@ -219,15 +229,15 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
           enrollment.enrollmentStatus = enrollmentStatus[3];
           transaction.paymentStatus = paymentStatus[2];
 
-          // await paymentEnrollmentConfirmationMail({
-          //   email: student.email,
-          //   enrollmentDate: Date.now(),
-          //   amountPaid: actualPayment.amountPaid,
-          //   courseType: enrollment.preferedClassMode,
-          //   paymentstatus: paymentStatus[2],
-          //   nextPaymentDate: '',
-          //   fullName: `${student.firstName} ${student.lastName}`,
-          // });
+          await paymentEnrollmentConfirmationMail({
+            email: student.email,
+            enrollmentDate: Date.now(),
+            amountPaid: actualPayment.amountPaid,
+            courseType: enrollment.preferedClassMode,
+            paymentstatus: paymentStatus[2],
+            nextPaymentDate: '',
+            fullName: fullName,
+          });
         } else if (
           Number(actualPayment.amountPaid) < Number(transaction.trainingFee)
         ) {
@@ -250,7 +260,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
               courseType: enrollment.preferedClassMode,
               paymentstatus: paymentStatus[1],
               nextPaymentDate: actualPayment.dueDate,
-              fullName: `${student.firstName} ${student.lastName}`,
+              fullName: fullName,
             });
           }
         }
