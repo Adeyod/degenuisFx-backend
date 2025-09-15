@@ -250,10 +250,15 @@ const balancePayment = catchErrors(async (req, res) => {
     throw new AppError(`Amount to pay is required.`, 400);
   }
 
+  const userExist = await Student.findById({ _id: user.userId });
+
+  if (!userExist) {
+    throw new AppError(`Student not found.`, 404);
+  }
   const studentPaymentDoc = await Payment.findById({ _id: paymentId });
 
   if (!studentPaymentDoc) {
-    throw new AppError(`Payment Document not found.`, 400);
+    throw new AppError(`Payment Document not found.`, 404);
   }
 
   if (studentPaymentDoc.paymentSummary.length === 2) {
@@ -291,9 +296,20 @@ const balancePayment = catchErrors(async (req, res) => {
 
   const reference = generatePaymentReference(paymentReferencePayload);
 
+  let exchangeRate;
+  if (userExist.geoLocation.toLowerCase().trim() === 'nigeria') {
+    exchangeRate = 1500;
+  } else {
+    const actualRate = getUsdToNgnRate();
+    exchangeRate = actualRate;
+  }
+
+  const nairaValue = value.amountPaid * exchangeRate;
+
   const userPayload = {
     userId: user.userId,
     amountPaid: amountToPay,
+    nairaValue: nairaValue,
     paymentId: studentPaymentDoc._id,
     companyPaymentReference: reference,
     balance: (studentPaymentDoc.balance -= amountToPay),

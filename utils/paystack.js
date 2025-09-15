@@ -110,10 +110,10 @@ const payStackInitialized = async (payload) => {
 
 const payStackPaymentBalanceInitialized = async (payload) => {
   try {
-    const { amountPaid, email } = payload;
+    const { amountPaid, email, nairaValue } = payload;
 
     const formattedAmount =
-      parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+      parseInt(nairaValue.toString().replace(/,/g, ''), 10) * 100;
 
     const paystackData = {
       email: email,
@@ -148,6 +148,7 @@ const payStackPaymentBalanceInitialized = async (payload) => {
     const data = {
       userId: payload.userId,
       amountPaid: amountPaid,
+      nairaValue: nairaValue,
       paymentId: payload.paymentId,
       balance: payload.balance,
       email: payload.email,
