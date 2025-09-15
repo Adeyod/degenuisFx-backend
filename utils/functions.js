@@ -61,7 +61,7 @@ const getUserLocation = async (long, lat) => {
 };
 
 const getUsdToNgnRate = async () => {
-  const url = `http://data.fixer.io/api/latest?access_key=${process.env.FIXER_API_KEY}`;
+  const url = `https://data.fixer.io/api/latest?access_key=${process.env.FIXER_API_KEY}`;
 
   try {
     const options = {
