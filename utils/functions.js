@@ -72,6 +72,7 @@ const getUsdToNgnRate = async () => {
       },
     };
     const response = await axios.request(options);
+    console.log("response.data.rates['NGN']:", response.data.rates['NGN']);
     return response.data.rates['NGN'].toFixed(2);
   } catch (error) {
     console.error(
