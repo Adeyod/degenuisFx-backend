@@ -13,10 +13,11 @@ const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
 const payStackInitialized = async (payload) => {
   try {
-    const { amountPaid, email } = payload;
+    const { amountPaid, email, nairaValue } = payload;
 
+    console.log('nairaValue:', nairaValue);
     const formattedAmount =
-      parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+      parseInt(nairaValue.toString().replace(/,/g, ''), 10) * 100;
 
     const dataToSend = {
       email: email,
@@ -53,6 +54,7 @@ const payStackInitialized = async (payload) => {
       training: payload.training,
       // enrollment: payload.enrollment,
       amountPaid: amountPaid,
+      nairaValue: nairaValue,
       companyPaymentReference: payload.companyPaymentReference,
       transactionType: 'training fee payment',
       transactionStatus: 'pending',

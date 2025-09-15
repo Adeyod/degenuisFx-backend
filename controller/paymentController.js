@@ -17,6 +17,7 @@ import {
   calculateNextPaymentDay,
   generatePaymentReference,
   getStudentLocation,
+  getUsdToNgnRate,
 } from '../utils/functions.js';
 import {
   paystackCallBack,
@@ -31,16 +32,6 @@ import dayjs from 'dayjs';
 
 const makePayment = catchErrors(async (req, res) => {
   const user = req.user;
-
-  const ip =
-    req.headers['x-forwarded-for']?.split(',')[0] ||
-    req.connection.remoteAddress;
-
-  console.log('ip:', ip);
-
-  const studentLocation = await getStudentLocation(ip);
-
-  console.log('studentLocation:', studentLocation);
 
   const {
     preferedClassMode,
@@ -180,6 +171,14 @@ const makePayment = catchErrors(async (req, res) => {
 
   const reference = generatePaymentReference(paymentReferencePayload);
 
+  let exchangeRate;
+  if (userExist.geoLocation.toLowerCase().trim() === 'nigeria') {
+    exchangeRate = 1500;
+  } else {
+    const actualRate = getUsdToNgnRate();
+    exchangeRate = actualRate;
+  }
+
   const userPayload = {
     preferedClassMode: value.preferedClassMode,
     training: training._id,
@@ -188,7 +187,7 @@ const makePayment = catchErrors(async (req, res) => {
     trainingFee: actualTrainingFee,
     // trainingFee: value.trainingFee,
     amountPaid: value.amountPaid,
-    // nairaValue:
+    nairaValue: exchangeRate,
     balance: acurrateBalance,
     companyPaymentReference: reference,
     nextPaymentDate:

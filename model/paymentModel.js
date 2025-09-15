@@ -36,6 +36,7 @@ const paymentSchema = new mongoose.Schema(
       {
         paymentDate: { type: Date, default: Date.now },
         amountPaid: { type: Number },
+        nairaValue: { type: Number },
         transactionType: { type: String },
         transactionStatus: {
           type: String,

@@ -16,6 +16,7 @@ const saveInitializedPayment = async (data) => {
     training,
     // enrollment,
     amountPaid,
+    nairaValue,
     companyPaymentReference,
     transactionType,
     transactionStatus,
@@ -66,6 +67,7 @@ const saveInitializedPayment = async (data) => {
 
   const summary = {
     amountPaid: amountPaid,
+    nairaValue: nairaValue,
     transactionType: transactionType,
     transactionStatus: transactionStatus,
     description: description,
@@ -121,6 +123,7 @@ const saveInitializedBalance = async (data) => {
     userId,
     amountPaid,
     paymentId,
+    nairaValue,
     companyPaymentReference,
     balance,
     email,
@@ -139,6 +142,7 @@ const saveInitializedBalance = async (data) => {
 
   const summary = {
     amountPaid: amountPaid,
+    nairaValue: nairaValue,
     transactionType: transactionType,
     transactionStatus: transactionStatus,
     description: description,

@@ -12,7 +12,17 @@ const investorSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   isUpdated: { type: Boolean, default: false },
   role: { type: String, enum: memberRole, default: memberRole[1] },
-
+  coords: {
+    type: {
+      type: String,
+      enum: ['Point'], // GeoJSON Point
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true,
+    },
+  },
   phoneNumber: { type: String }, // how are you going to be sending this to me
   address: { type: String },
   countryOfResidence: { type: String },

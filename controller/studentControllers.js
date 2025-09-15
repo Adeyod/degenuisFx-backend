@@ -20,6 +20,7 @@ import Enrollment from '../model/enrollmentModel.js';
 import Training from '../model/trainingModel.js';
 import { AppError } from '../utils/app.error.js';
 import catchErrors from '../utils/tryCatch.js';
+import { getUserLocation } from '../utils/functions.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -37,6 +38,7 @@ const registerStudent = catchErrors(async (req, res) => {
     stateOfResidence,
     gender,
     DOB,
+    coordinates,
     role,
   } = req.body;
 
@@ -51,11 +53,18 @@ const registerStudent = catchErrors(async (req, res) => {
     !countryOfResidence ||
     !stateOfResidence ||
     !gender ||
-    !DOB
+    !DOB ||
+    !coordinates
   ) {
     throw new AppError('Please fill all mandatory fields', 400);
   }
 
+  // coordinates = {
+  //   long: '',
+  //   lat: '',
+  // };
+
+  console.log('coordinates:', coordinates);
   const trimmedFirstName = firstName.trim();
   const trimmedLastName = lastName.trim();
   const trimmedAddress = address.trim();
@@ -101,6 +110,13 @@ const registerStudent = catchErrors(async (req, res) => {
     );
   }
 
+  if (
+    typeof coordinates.long !== 'number' ||
+    typeof coordinates.lat !== 'number'
+  ) {
+    throw new AppError('Long and lat must be number.', 400);
+  }
+
   if (password !== confirmPassword) {
     throw new AppError('Password and confirm password do not match', 400);
   }
@@ -116,6 +132,12 @@ const registerStudent = catchErrors(async (req, res) => {
     crypto.randomBytes(32).toString('hex') +
     crypto.randomBytes(32).toString('hex');
 
+  const geoLocation = await getUserLocation(coordinates.long, coordinates.lat);
+  const coords = {
+    type: 'Point',
+    coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
+  };
+
   if (middleName !== '') {
     if (forbiddenCharsRegex.test(trimmedMiddleName)) {
       throw new AppError(`Invalid character in middle name field`, 400);
@@ -129,6 +151,8 @@ const registerStudent = catchErrors(async (req, res) => {
       password: hashedPassword,
       countryOfResidence: trimmedCountryOfResidence,
       stateOfResidence: trimmedStateOfResidence,
+      geoLocation: geoLocation.country,
+      coords,
       gender,
       DOB,
       address: trimmedAddress,
@@ -159,6 +183,8 @@ const registerStudent = catchErrors(async (req, res) => {
       password: hashedPassword,
       countryOfResidence: trimmedCountryOfResidence,
       stateOfResidence: trimmedStateOfResidence,
+      geoLocation: geoLocation.country,
+      coords,
       gender,
       DOB,
       role,

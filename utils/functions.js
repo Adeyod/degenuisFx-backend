@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { AppError } from './app.error.js';
 
 const calculateNextPaymentDay = () => {
   const gracePeriod = 30;
@@ -45,6 +46,43 @@ const getStudentLocation = async (ip) => {
   }
 };
 
+const getUserLocation = async (long, lat) => {
+  try {
+    const url = `https://us1.locationiq.com/v1/reverse.php?key=${process.env.LOCATIONIQ_API_KEY}&lat=${lat}&lon=${long}&format=json`;
+
+    const response = await axios.get(url);
+    console.log('response:', response.data);
+    const country = response.data.address.country;
+    const countryCode = response.data.address.country_code.toUpperCase();
+    return { country, countryCode };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getUsdToNgnRate = async () => {
+  const url = `http://data.fixer.io/api/latest?access_key=${process.env.FIXER_API_KEY}`;
+
+  try {
+    const options = {
+      method: 'GET',
+      url: url,
+      paranms: {
+        base: 'USD',
+      },
+    };
+    const response = await axios.request(url4, options);
+    console.log('response:', response.data.rates['NGN']);
+    return response.data.rates['NGN'];
+  } catch (error) {
+    console.error(
+      'Error fetching USD→NGN rate:',
+      error.response?.data || error.message
+    );
+    throw new AppError('Exchange rate service error', 502);
+  }
+};
+
 const capitalizeFirstLetter = (payload) => {
   const value = payload.charAt(0).toUpperCase() + payload.slice(1);
 
@@ -76,6 +114,8 @@ const formatDate = (date) => {
 };
 
 export {
+  getUsdToNgnRate,
+  getUserLocation,
   formatDate,
   capitalizeFirstLetter,
   getStudentLocation,

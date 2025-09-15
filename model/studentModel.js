@@ -8,6 +8,7 @@ import {
 const studentSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   middleName: { type: String },
+  geoLocation: { type: String },
   lastName: { type: String, required: true },
   gender: { type: String, enum: genderEnum },
   DOB: { type: Date },
@@ -16,7 +17,17 @@ const studentSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   isUpdated: { type: Boolean, default: false },
   role: { type: String, enum: memberRole, default: memberRole[0] },
-
+  coords: {
+    type: {
+      type: String,
+      enum: ['Point'], // GeoJSON Point
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true,
+    },
+  },
   phoneNumber: { type: String }, // how are you going to be sending this to me
   preferredTrainingDays: { type: String },
   address: { type: String },
