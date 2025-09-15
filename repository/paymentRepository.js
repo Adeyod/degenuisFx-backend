@@ -274,7 +274,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
       transaction.markModified('paymentSummary');
 
       await enrollment.save();
-      // await transaction.save();
+      await transaction.save();
     }
 
     console.log('I am running c');
