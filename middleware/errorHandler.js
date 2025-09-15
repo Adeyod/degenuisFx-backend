@@ -17,7 +17,7 @@ export const errorHandler = async (error, req, res, next) => {
     success: false,
     status: 500,
     errMsg: 'Internal Server Error...',
-    error: process.env.NODE_ENV === 'development' ? error : undefined,
+    error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     message: error.message || 'Something went wrong',
   });
   return;

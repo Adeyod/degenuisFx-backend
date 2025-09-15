@@ -31,6 +31,7 @@ const globalErrorHandler = () => {
 
   process.on('uncaughtRejection', (reason, promise) => {
     console.error('Uncaught Rejection:', reason);
+    process.exit(1);
   });
 };
 

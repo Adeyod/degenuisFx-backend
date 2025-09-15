@@ -156,6 +156,8 @@ const saveInitializedBalance = async (data) => {
 };
 
 const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
+  console.log('I am running a');
+
   try {
     const { reference, status, amount } = data;
 
@@ -188,6 +190,8 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
     if (!enrollment) {
       throw new AppError('Enrollment not found.', 404);
     }
+
+    console.log('I am running b');
 
     if (actualPayment.transactionStatus === 'pending') {
       console.log('I am running here');
@@ -244,13 +248,19 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
           } else {
             enrollment.enrollmentStatus = enrollmentStatus[2];
             transaction.paymentStatus = paymentStatus[1];
+
+            console.log('formattedDueDate I am running here:');
+            console.log('transaction.dueDate:', transaction.dueDate);
+            const formattedDueDate = formatDate(new Date(transaction.dueDate));
+            console.log('formattedDueDate:', formattedDueDate);
+
             await paymentEnrollmentConfirmationMail({
               email: student.email,
               enrollmentDate: formattedDate,
               amountPaid: actualPayment.amountPaid,
               courseType: enrollment.preferedClassMode,
               paymentStatus: paymentStatus[1],
-              nextPaymentDate: actualPayment.dueDate,
+              nextPaymentDate: formattedDueDate,
               fullName: fullName,
             });
           }
@@ -260,8 +270,10 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
       transaction.markModified('paymentSummary');
 
       await enrollment.save();
-      await transaction.save();
+      // await transaction.save();
     }
+
+    console.log('I am running c');
 
     return transaction;
   } catch (error) {

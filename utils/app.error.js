@@ -1,10 +1,10 @@
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
-    this.message = message;
     this.statusCode = statusCode;
-    Object.setPrototypeOf(this, AppError.prototype);
     this.name = 'AppError';
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -13,20 +13,20 @@ class JoiError extends Error {
     super(message);
     this.statusCode = statusCode;
     this.type = type;
-    Object.setPrototypeOf(this, JoiError.prototype);
     this.name = 'JoiError';
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
 class JwtError extends Error {
-  constructor(message, statusCode, expiredAt) {
+  constructor(message, statusCode = 401, expiredAt) {
     super(message);
-    this.message = message;
     this.statusCode = statusCode;
     this.expiredAt = expiredAt;
-    console.log('jwt expired:', expiredAt);
-    Object.setPrototypeOf(this, JwtError.prototype);
     this.name = 'JwtError';
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 

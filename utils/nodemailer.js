@@ -36,7 +36,7 @@ const trainingCompletionCongratulationTemplate = readFileSync(
   'utf8'
 );
 
-const emailVerification = async (email, firstName, link, next) => {
+const emailVerification = async (email, firstName, link) => {
   try {
     const emailVerificationContent = emailVerificationTemplate
       .replace('{{verificationLink}}', link)
@@ -57,7 +57,7 @@ const emailVerification = async (email, firstName, link, next) => {
   }
 };
 
-const forgotPasswordSender = async (email, link, firstName, next) => {
+const forgotPasswordSender = async (email, link, firstName) => {
   try {
     const forgotPasswordContent = passwordResetTemplate
       .replace('{{resetLink}}', link)
@@ -87,6 +87,7 @@ const paymentEnrollmentConfirmationMail = async ({
   fullName,
 }) => {
   try {
+    console.log('nextPaymentDate:', nextPaymentDate);
     const paymentEnrollmentConfirmationContent =
       paymentEnrollmentConfirmationTemplate
         .replace('{{enrollmentDate}}', enrollmentDate)

@@ -12,159 +12,183 @@ import { AppError } from './app.error.js';
 const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
 const payStackInitialized = async (payload) => {
-  const { amountPaid, email } = payload;
+  try {
+    const { amountPaid, email } = payload;
 
-  const formattedAmount =
-    parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+    const formattedAmount =
+      parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
 
-  const dataToSend = {
-    email: email,
-    amount: formattedAmount,
-    metadata: payload,
-  };
+    const dataToSend = {
+      email: email,
+      amount: formattedAmount,
+      metadata: payload,
+    };
 
-  const response = await axios.post(
-    'https://api.paystack.co/transaction/initialize',
-    dataToSend,
-    {
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await axios.post(
+      'https://api.paystack.co/transaction/initialize',
+      dataToSend,
+      {
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const parsedData = JSON.parse(response.config.data);
+
+    const amt = parseFloat(
+      parsedData.metadata.amountPaid.toString().replace(/,/g, '')
+    );
+
+    if (isNaN(amt)) {
+      throw new AppError(
+        'Invalid amount provided. Please provide a valid number',
+        400
+      );
     }
-  );
 
-  const parsedData = JSON.parse(response.config.data);
+    const data = {
+      userId: payload.userId,
+      training: payload.training,
+      // enrollment: payload.enrollment,
+      amountPaid: amountPaid,
+      companyPaymentReference: payload.companyPaymentReference,
+      transactionType: 'training fee payment',
+      transactionStatus: 'pending',
+      description: 'user paid for course',
+      preferedClassMode: payload.preferedClassMode,
+      paymentMode: payload.paymentMode,
+      trainingFee: payload.trainingFee,
+      balance: payload.balance,
+      nextPaymentDate:
+        payload.paymentMode === paymentModeEnum[1] && payload.nextPaymentDate,
+      email: payload.email,
+      status: response.data.status,
+      message: response.data.message,
+      reference: response.data.data.reference,
+      authorizationUrl: response.data.data.authorization_url,
+    };
 
-  const amt = parseFloat(
-    parsedData.metadata.amountPaid.toString().replace(/,/g, '')
-  );
+    const result = await saveInitializedPayment(data);
 
-  if (isNaN(amt)) {
-    throw new AppError(
-      'Invalid amount provided. Please provide a valid number',
-      400
-    );
+    if (!result) {
+      throw new AppError(
+        'Unable to save Payment initialization before sending to paystack.',
+        400
+      );
+    }
+
+    // const payStackData2 = {
+    //   status: response.data.status,
+    //   message: response.data.message,
+    //   reference: response.data.data.reference,
+    //   companyPaymentReference: parsedData.metadata.companyPaymentReference,
+    //   authorizationUrl: response.data.data.authorization_url,
+    //   paymentId: pendingPayment._id,
+    // };
+
+    // const result = await updatePaymentInitializationWithPaystackData(
+    //   payStackData2
+    // );
+
+    return { response, result };
+  } catch (error) {
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
   }
-
-  const data = {
-    userId: payload.userId,
-    training: payload.training,
-    // enrollment: payload.enrollment,
-    amountPaid: amountPaid,
-    companyPaymentReference: payload.companyPaymentReference,
-    transactionType: 'training fee payment',
-    transactionStatus: 'pending',
-    description: 'user paid for course',
-    preferedClassMode: payload.preferedClassMode,
-    paymentMode: payload.paymentMode,
-    trainingFee: payload.trainingFee,
-    balance: payload.balance,
-    nextPaymentDate:
-      payload.paymentMode === paymentModeEnum[1] && payload.nextPaymentDate,
-    email: payload.email,
-    status: response.data.status,
-    message: response.data.message,
-    reference: response.data.data.reference,
-    authorizationUrl: response.data.data.authorization_url,
-  };
-
-  const result = await saveInitializedPayment(data);
-
-  if (!result) {
-    throw new AppError(
-      'Unable to save Payment initialization before sending to paystack.',
-      400
-    );
-  }
-
-  // const payStackData2 = {
-  //   status: response.data.status,
-  //   message: response.data.message,
-  //   reference: response.data.data.reference,
-  //   companyPaymentReference: parsedData.metadata.companyPaymentReference,
-  //   authorizationUrl: response.data.data.authorization_url,
-  //   paymentId: pendingPayment._id,
-  // };
-
-  // const result = await updatePaymentInitializationWithPaystackData(
-  //   payStackData2
-  // );
-
-  return { response, result };
 };
 
 const payStackPaymentBalanceInitialized = async (payload) => {
-  const { amountPaid, email } = payload;
+  try {
+    const { amountPaid, email } = payload;
 
-  const formattedAmount =
-    parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
+    const formattedAmount =
+      parseInt(amountPaid.toString().replace(/,/g, ''), 10) * 100;
 
-  const paystackData = {
-    email: email,
-    amount: formattedAmount,
-    metadata: payload,
-  };
+    const paystackData = {
+      email: email,
+      amount: formattedAmount,
+      metadata: payload,
+    };
 
-  const response = await axios.post(
-    'https://api.paystack.co/transaction/initialize',
-    paystackData,
-    {
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await axios.post(
+      'https://api.paystack.co/transaction/initialize',
+      paystackData,
+      {
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const parsedData = JSON.parse(response.config.data);
+
+    const amt = parseFloat(
+      parsedData.metadata.amountPaid.toString().replace(/,/g, '')
+    );
+
+    if (isNaN(amt)) {
+      throw new AppError(
+        'Invalid amount provided. Please provide a valid number',
+        400
+      );
     }
-  );
 
-  const parsedData = JSON.parse(response.config.data);
+    const data = {
+      userId: payload.userId,
+      amountPaid: amountPaid,
+      paymentId: payload.paymentId,
+      balance: payload.balance,
+      email: payload.email,
+      transactionType: 'training fee balance payment',
+      transactionStatus: 'pending',
+      description: 'course balance',
 
-  const amt = parseFloat(
-    parsedData.metadata.amountPaid.toString().replace(/,/g, '')
-  );
+      status: response.data.status,
+      message: response.data.message,
+      reference: response.data.data.reference,
+      companyPaymentReference: parsedData.metadata.companyPaymentReference,
+      authorizationUrl: response.data.data.authorization_url,
+    };
 
-  if (isNaN(amt)) {
-    throw new AppError(
-      'Invalid amount provided. Please provide a valid number',
-      400
-    );
+    const result = await saveInitializedBalance(data);
+
+    if (!result) {
+      throw new AppError(
+        'Unable to save balance initialization before sending to paystack.',
+        400
+      );
+    }
+
+    // const payStackData2 = {
+
+    // };
+
+    // const result = await updatePaymentInitializationWithPaystackData(
+    //   payStackData2
+    // );
+
+    return { response, result };
+  } catch (error) {
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
   }
-
-  const data = {
-    userId: payload.userId,
-    amountPaid: amountPaid,
-    paymentId: payload.paymentId,
-    balance: payload.balance,
-    email: payload.email,
-    transactionType: 'training fee balance payment',
-    transactionStatus: 'pending',
-    description: 'course balance',
-
-    status: response.data.status,
-    message: response.data.message,
-    reference: response.data.data.reference,
-    companyPaymentReference: parsedData.metadata.companyPaymentReference,
-    authorizationUrl: response.data.data.authorization_url,
-  };
-
-  const result = await saveInitializedBalance(data);
-
-  if (!result) {
-    throw new AppError(
-      'Unable to save balance initialization before sending to paystack.',
-      400
-    );
-  }
-
-  // const payStackData2 = {
-
-  // };
-
-  // const result = await updatePaymentInitializationWithPaystackData(
-  //   payStackData2
-  // );
-
-  return { response, result };
 };
 
 const paystackAuthUrlValidity = async (reference) => {
@@ -206,6 +230,15 @@ const paystackAuthUrlValidity = async (reference) => {
     }
   } catch (error) {
     console.log(error);
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
   }
 };
 
@@ -233,8 +266,20 @@ const paystackCallBack = async (reference) => {
 
       return getTransaction;
     }
+
+    throw new AppError('Payment verification failed.', 400);
   } catch (error) {
     console.log(error);
+
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
   }
 };
 
@@ -301,6 +346,15 @@ const paystackWebHook = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
   }
 };
 
