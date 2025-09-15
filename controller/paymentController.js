@@ -304,7 +304,7 @@ const balancePayment = catchErrors(async (req, res) => {
     exchangeRate = actualRate;
   }
 
-  const nairaValue = value.amountPaid * exchangeRate;
+  const nairaValue = amountToPay * exchangeRate;
 
   const userPayload = {
     userId: user.userId,
