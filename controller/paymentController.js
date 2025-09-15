@@ -179,6 +179,8 @@ const makePayment = catchErrors(async (req, res) => {
     exchangeRate = actualRate;
   }
 
+  const nairaValue = value.amountPaid * exchangeRate;
+
   const userPayload = {
     preferedClassMode: value.preferedClassMode,
     training: training._id,
@@ -187,7 +189,7 @@ const makePayment = catchErrors(async (req, res) => {
     trainingFee: actualTrainingFee,
     // trainingFee: value.trainingFee,
     amountPaid: value.amountPaid,
-    nairaValue: exchangeRate,
+    nairaValue: nairaValue,
     balance: acurrateBalance,
     companyPaymentReference: reference,
     nextPaymentDate:
