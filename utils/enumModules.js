@@ -15,7 +15,9 @@ const enrollmentStatus = [
 ];
 const transactionStatusEnum = ['pending', 'success', 'failed'];
 
+const allowedInvestmentDurationEnum = ['3 months', '6 months', '12 months'];
 export {
+  allowedInvestmentDurationEnum,
   genderEnum,
   memberRole,
   trainingDays,

@@ -12,7 +12,6 @@ import {
   resendEmailVerification,
   updateInvestor,
   getInvestorsBySearch,
-  invest,
 } from '../controller/investorControllers.js';
 import { verifyAccessToken } from '../middleware/jwtAuth.js';
 import { permission } from '../utils/authorization.js';
@@ -21,8 +20,6 @@ import { limiter } from '../utils/limiter.js';
 
 const router = express.Router();
 
-router.post('/updateInvestor/:investorId', verifyAccessToken, updateInvestor);
-
 router.post('/register', registerInvestor);
 router.post('/login', loginInvestor);
 // router.post('/login', limiter(5), loginInvestor);
@@ -30,21 +27,32 @@ router.post('/forgotPassword', forgotPassword);
 router.post('/resetPassword/:userId/:token', resetPassword);
 router.post('/resendEmailVerification', resendEmailVerification);
 router.post('/verify-email/:userId/:token', verifyInvestorEmail);
-router.get('/getInvestor/:investorId', verifyAccessToken, getInvestor);
+
+router.use(verifyAccessToken);
+router.post(
+  '/updateInvestor/:investorId',
+  permission(['investor']),
+  updateInvestor
+);
+
+router.get('/getInvestor/:investorId', getInvestor);
 router.get(
   '/getSingleInvestor/:investorId',
-  verifyAccessToken,
   permission(['admin']),
   getSingleInvestor
 );
+
 router.get(
   '/getAllInvestors',
   verifyAccessToken,
   permission(['admin']),
   getAllInvestors
 );
-router.get('/getInvestorsBySearch', getInvestorsBySearch);
-router.post('/invest', invest);
+router.get(
+  '/getInvestorsBySearch',
+  permission(['admin']),
+  getInvestorsBySearch
+);
 router.get('/logout', investorLogout);
 
 export default router;

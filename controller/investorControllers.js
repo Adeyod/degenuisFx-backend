@@ -872,10 +872,7 @@ const getInvestorsBySearch = catchErrors(async (req, res) => {
   });
 });
 
-const invest = catchErrors(async (req, res) => {});
-
 export {
-  invest,
   getInvestorsBySearch,
   investorLogout,
   getSingleInvestor,

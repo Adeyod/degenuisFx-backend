@@ -61,17 +61,23 @@ const getUserLocation = async (long, lat) => {
 };
 
 const getUsdToNgnRate = async () => {
-  const url = `https://data.fixer.io/api/latest?access_key=${process.env.FIXER_API_KEY}`;
+  // const url = `https://data.fixer.io/api/latest?access_key=${process.env.FIXER_API_KEY}`;
+  const currency = 'USD';
+  const url = `https://open.er-api.com/v6/latest/${currency}`;
+  // const url = `https://www.ngnrates.com/market/exchange-rates/us-dollar-to-naira/cbn-central-bank-of-nigeria`;
 
   try {
-    const options = {
-      method: 'GET',
-      url: url,
-      paranms: {
-        base: 'USD',
-      },
-    };
-    const response = await axios.request(options);
+    // const options = {
+    //   method: 'GET',
+    //   url: url,
+    //   paranms: {
+    //     base: 'USD',
+    //   },
+    // };
+    // const response = await axios.request(options);
+
+    const response = await axios.get(url);
+    console.log('response.rates:', response.data.rates['NGN']);
     return response.data.rates['NGN'].toFixed(2);
   } catch (error) {
     console.error(
@@ -81,6 +87,8 @@ const getUsdToNgnRate = async () => {
     throw new AppError('Error fetching USD→NGN rate:', 502);
   }
 };
+
+getUsdToNgnRate();
 
 const capitalizeFirstLetter = (payload) => {
   const value = payload.charAt(0).toUpperCase() + payload.slice(1);

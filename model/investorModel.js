@@ -12,6 +12,7 @@ const investorSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   isUpdated: { type: Boolean, default: false },
   role: { type: String, enum: memberRole, default: memberRole[1] },
+  geoLocation: { type: String },
   coords: {
     type: {
       type: String,
