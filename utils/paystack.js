@@ -269,9 +269,8 @@ const paystackCallBack = async (reference) => {
 
     throw new AppError('Payment verification failed.', 400);
   } catch (error) {
-    console.log(error);
-
     if (error.response) {
+      console.log(error.response.data.message);
       // Error from Paystack API
       throw new AppError(
         error.response.data.message || 'Error from Paystack',

@@ -160,10 +160,13 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
   try {
     const { reference, status, amount } = data;
+    console.log('reference:', reference);
 
     const transaction = await Payment.findOne({
       'paymentSummary.reference': reference,
     });
+
+    console.log('transaction:', transaction);
 
     if (!transaction) {
       throw new AppError(
@@ -175,6 +178,7 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
     const actualPayment = transaction.paymentSummary.find(
       (a) => a.reference === reference
     );
+    console.log('actualPayment:', actualPayment);
 
     if (!actualPayment) {
       throw new AppError(
