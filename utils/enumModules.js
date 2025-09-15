@@ -14,9 +14,11 @@ const enrollmentStatus = [
   'full-enrollment',
 ];
 const transactionStatusEnum = ['pending', 'success', 'failed'];
+const transactionTypeEnum = ['admin-fee'];
 
 const allowedInvestmentDurationEnum = ['3 months', '6 months', '12 months'];
 export {
+  transactionTypeEnum,
   allowedInvestmentDurationEnum,
   genderEnum,
   memberRole,

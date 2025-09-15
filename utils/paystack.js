@@ -4,6 +4,7 @@ import {
   saveInitializedPayment,
   saveInitializedBalance,
   updatePaymentInitializationWithPaystackData,
+  saveInitializedInvestmentPayment,
 } from '../repository/paymentRepository.js';
 import { paymentModeEnum } from './enumModules.js';
 import crypto from 'crypto';
@@ -93,6 +94,82 @@ const payStackInitialized = async (payload) => {
     // const result = await updatePaymentInitializationWithPaystackData(
     //   payStackData2
     // );
+
+    return { response, result };
+  } catch (error) {
+    if (error.response) {
+      // Error from Paystack API
+      throw new AppError(
+        error.response.data.message || 'Error from Paystack',
+        error.response.status || 400
+      );
+    }
+
+    throw error;
+  }
+};
+
+const payStackInvestmentPaymentInitialized = async (payload) => {
+  try {
+    const { nairaValue } = payload;
+
+    console.log('nairaValue:', nairaValue);
+    const formattedAmount =
+      parseInt(nairaValue.toString().replace(/,/g, ''), 10) * 100;
+
+    // email: email,
+    const dataToSend = {
+      amount: formattedAmount,
+      metadata: payload,
+    };
+
+    const response = await axios.post(
+      'https://api.paystack.co/transaction/initialize',
+      dataToSend,
+      {
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const parsedData = JSON.parse(response.config.data);
+
+    const amt = parseFloat(
+      parsedData.metadata.amountPaid.toString().replace(/,/g, '')
+    );
+
+    if (isNaN(amt)) {
+      throw new AppError(
+        'Invalid amount provided. Please provide a valid number',
+        400
+      );
+    }
+
+    const data = {
+      userId: payload.userId,
+      investmentId: payload.investmentId,
+      amountPaid: amountPaid,
+      nairaValue: nairaValue,
+      companyPaymentReference: payload.companyPaymentReference,
+      transactionType: 'admin fee payment',
+      transactionStatus: 'pending',
+      description: 'user paid for admin fee',
+      status: response.data.status,
+      message: response.data.message,
+      reference: response.data.data.reference,
+      authorizationUrl: response.data.data.authorization_url,
+    };
+
+    const result = await saveInitializedInvestmentPayment(data);
+
+    if (!result) {
+      throw new AppError(
+        'Unable to save Payment initialization before sending to paystack.',
+        400
+      );
+    }
 
     return { response, result };
   } catch (error) {
@@ -368,4 +445,5 @@ export {
   payStackInitialized,
   paystackWebHook,
   paystackCallBack,
+  payStackInvestmentPaymentInitialized,
 };

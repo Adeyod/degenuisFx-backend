@@ -1,7 +1,19 @@
 import Investment from '../model/investmentModel.js';
+import InvestmentPayment from '../model/investmentPaymentModel.js';
 import Investor from '../model/investorModel.js';
 import { AppError } from '../utils/app.error.js';
-import { allowedInvestmentDurationEnum } from '../utils/enumModules.js';
+import {
+  allowedInvestmentDurationEnum,
+  transactionTypeEnum,
+} from '../utils/enumModules.js';
+import {
+  generatePaymentReference,
+  getUsdToNgnRate,
+} from '../utils/functions.js';
+import {
+  payStackInitialized,
+  payStackInvestmentPaymentInitialized,
+} from '../utils/paystack.js';
 import catchErrors from '../utils/tryCatch.js';
 import { createInvestmentSchema } from '../utils/validation.js';
 
@@ -287,6 +299,54 @@ const collectAdminCharges = catchErrors(async (req, res) => {
       404
     );
   }
+
+  const paymentInitialized = await InvestmentPayment.findOne({
+    investment: investment._id,
+    investor: investment.investor,
+  });
+
+  if (paymentInitialized) {
+    throw new AppError(
+      'This fee has already being initialized for payment before now.',
+      400
+    );
+  }
+
+  const exchangeRate = await getUsdToNgnRate();
+
+  if (!exchangeRate) {
+    throw new AppError('Exchange rate is undefined.', 400);
+  }
+
+  const nairaValue = investment.adminChargeFee * exchangeRate;
+
+  const paymentReferencePayload = {
+    trainingId: investment._id,
+    userId: investment.investor,
+    paymentMode: transactionTypeEnum[0],
+  };
+
+  const reference = generatePaymentReference(paymentReferencePayload);
+
+  const payload = {
+    amountPaid: investment.adminChargeFee,
+    userId: investment.investor,
+    investmentId: investment._id,
+    nairaValue: nairaValue,
+    companyPaymentReference: reference,
+  };
+
+  const result = await payStackInvestmentPaymentInitialized(payload);
+
+  if (!result) {
+    throw new AppError('Unable to process payment.', 400);
+  }
+
+  return res.status(200).json({
+    message: 'Initialized payment successfully',
+    data: result.response.data.data,
+    success: true,
+  });
 });
 
 export {
