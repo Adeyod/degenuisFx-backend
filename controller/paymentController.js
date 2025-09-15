@@ -173,24 +173,14 @@ const makePayment = catchErrors(async (req, res) => {
 
   let exchangeRate;
 
-  console.log(
-    'userExist.geoLocation.toLowerCase().trim():',
-    userExist.geoLocation.toLowerCase().trim()
-  );
   if (userExist.geoLocation.toLowerCase().trim() === 'nigeria') {
-    console.log(
-      'userExist.geoLocation.toLowerCase().trim():',
-      userExist.geoLocation.toLowerCase().trim()
-    );
     exchangeRate = 1500;
   } else {
     const actualRate = await getUsdToNgnRate();
-    console.log('actualRate:', actualRate);
     exchangeRate = actualRate;
   }
 
   const nairaValue = value.amountPaid * exchangeRate;
-  console.log('nairaValue:', nairaValue);
 
   const userPayload = {
     preferedClassMode: value.preferedClassMode,

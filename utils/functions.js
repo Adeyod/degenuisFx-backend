@@ -72,14 +72,13 @@ const getUsdToNgnRate = async () => {
       },
     };
     const response = await axios.request(options);
-    console.log('response.data.rates:', response.data.rates);
     return response.data.rates['NGN'].toFixed(2);
   } catch (error) {
     console.error(
       'Error fetching USD→NGN rate:',
       error.response?.data || error.message
     );
-    throw new AppError(error.message, 502);
+    throw new AppError('Error fetching USD→NGN rate:', 502);
   }
 };
 

@@ -201,22 +201,21 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
     console.log('I am running b');
 
+    const student = await Student.findById({
+      _id: enrollment.studentId,
+    });
+
+    if (!student) {
+      throw new AppError('Student not found', 404);
+    }
+
     if (actualPayment.transactionStatus === 'pending') {
       console.log('I am running here');
       actualPayment.transactionStatus = status;
 
-      const student = await Student.findById({
-        _id: enrollment.studentId,
-      });
-
-      if (!student) {
-        throw new AppError('Student not found', 404);
-      }
-
       const fullName = `${capitalizeFirstLetter(
         student.firstName
       )} ${capitalizeFirstLetter(student.lastName)}`;
-      console.log('fullName:', fullName);
 
       const regDate = new Date();
       const formattedDate = formatDate(regDate);
@@ -279,6 +278,8 @@ const findPaymentTransactionByReferenceAndUpdateStatus = async (data) => {
 
       await enrollment.save();
       await transaction.save();
+    } else {
+      console.log('transaction already recorded...');
     }
 
     console.log('I am running c');
