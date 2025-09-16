@@ -353,7 +353,7 @@ const paystackCallBack = async (reference) => {
     );
 
     if (paystackResponse.data.data.status === 'success') {
-      const feeType = paystackResponse.data.data.feeType;
+      const feeType = paystackResponse.data.data.metadata.feeType;
 
       const data = {
         amount: paystackResponse.data.data.amount / 100,
@@ -432,7 +432,7 @@ const paystackWebHook = async (req, res) => {
               reference,
               status
             );
-        } else if (feeType === feeTypeEnum[1]) {
+        } else if (sentFeeType === feeTypeEnum[1]) {
           getTransaction = findInvestmentTransactionByReferenceAndUpdateStatus(
             reference,
             status
