@@ -22,25 +22,26 @@ const findInvestmentTransactionByReferenceAndUpdateStatus = async (data) => {
       );
     }
 
-    const investor = await Investor.findById({
-      _id: transaction.investor,
+    const investment = await Investment.findById({
+      _id: transaction.investment,
     });
 
-    if (!investor) {
-      throw new AppError(`Investor not found`, 404);
+    if (!investment) {
+      throw new AppError(`investment not found`, 404);
     }
+    console.log('investment:', investment);
 
     if (transaction.transactionStatus === 'pending') {
       console.log('I am running here');
 
       if (status === 'success') {
         transaction.transactionStatus = status;
-        investor.isAdminChargesPaid = true;
+        investment.isAdminChargesPaid = true;
       }
       transaction.markModified('paymentSummary');
 
       await transaction.save();
-      await investor.save();
+      await investment.save();
     } else {
       console.log('transaction already recorded...');
     }
