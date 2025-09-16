@@ -4,7 +4,8 @@ import Investor from '../model/investorModel.js';
 import { AppError } from '../utils/app.error.js';
 import {
   allowedInvestmentDurationEnum,
-  transactionTypeEnum,
+  feeTypeEnum,
+  investmentTransactionTypeEnum,
 } from '../utils/enumModules.js';
 import {
   generatePaymentReference,
@@ -24,6 +25,7 @@ const investmentInterest = catchErrors(async (req, res) => {
     adminChargeFee,
     adminChargePercent,
   } = req.body;
+
   const user = req.user.userId;
 
   const investorExist = await Investor.findById({ _id: user });
@@ -55,20 +57,20 @@ const investmentInterest = catchErrors(async (req, res) => {
 
   let backendAdminChargePercent;
 
-  if (value.amountToInvest > 5000 && value.amountToInvest <= 50000) {
+  if (value.amountToInvest >= 5000 && value.amountToInvest <= 50000) {
     backendAdminChargePercent = 5;
-    console.log('backendAdminChargePercent:', backendAdminChargePercent);
   } else if (value.amountToInvest > 50000) {
     backendAdminChargePercent = 3;
-    console.log('backendAdminChargePercent:', backendAdminChargePercent);
   }
 
   const backendAdminChargeFee =
-    backendAdminChargePercent * value.amountToInvest;
-  if (
-    value.adminChargeFee !== backendAdminChargeFee ||
-    value.adminChargePercent !== backendAdminChargePercent
-  ) {
+    (backendAdminChargePercent * value.amountToInvest) / 100;
+
+  if (value.adminChargePercent !== backendAdminChargePercent) {
+    throw new AppError('Incorrect admin charge percent...', 400);
+  }
+
+  if (value.adminChargeFee !== backendAdminChargeFee) {
     throw new AppError('Incorrect admin charge fee...', 400);
   }
 
@@ -253,6 +255,62 @@ const getmySingleInvestment = catchErrors(async (req, res) => {
   });
 });
 
+const getAllMyInvestments = catchErrors(async (req, res) => {
+  const user = req.user.userId;
+
+  const { page, limit, searchParams } = req.query;
+  let query = Investment.find({ investor: user });
+
+  if (searchParams) {
+    const regex = new RegExp(searchParams, 'i');
+
+    query = query.where({
+      $or: [
+        { duration: { $regex: regex } },
+        { amountToInvest: { $regex: regex } },
+      ],
+    });
+  }
+
+  if (!query) {
+    throw new AppError('Investments not found.', 404);
+  }
+
+  const count = await query.clone().countDocuments();
+
+  let pages = 0;
+
+  if (page !== undefined && limit !== undefined && count !== 0) {
+    const offset = (page - 1) * limit;
+
+    query = query.skip(offset).limit(limit);
+
+    pages = Math.ceil(count / limit);
+
+    if (page > pages) {
+      throw new AppError('Page can not be found.', 404);
+    }
+  }
+  const response = await query.sort({ createdAt: -1 });
+
+  if (!response || response.length === 0) {
+    throw new AppError('Investments not found.', 404);
+  }
+
+  const investmentObject = {
+    investments: response,
+    totalPages: pages,
+    totalCount: count,
+  };
+
+  return res.status(200).json({
+    message: 'Investments found successfully',
+    success: true,
+    status: 200,
+    investmentObject,
+  });
+});
+
 const approveInvestmentToReceiveAdminCharges = catchErrors(async (req, res) => {
   const { investmentId } = req.params;
 
@@ -287,16 +345,21 @@ const collectAdminCharges = catchErrors(async (req, res) => {
 
   const investment = await Investment.findById({
     _id: investmentId,
-  });
+  }).populate('investor');
 
   if (!investment) {
     throw new AppError('Investment not found.', 404);
   }
 
+  if (!investment.investor.email) {
+    throw new AppError('Investor email not found.', 404);
+  }
+  console.log('investment:', investment);
+
   if (investment.isApprovedForInvestment !== true) {
     throw new AppError(
       'Investment not yet approved by admin for payment.',
-      404
+      400
     );
   }
 
@@ -314,6 +377,8 @@ const collectAdminCharges = catchErrors(async (req, res) => {
 
   const exchangeRate = await getUsdToNgnRate();
 
+  console.log('exchangeRate:', exchangeRate);
+
   if (!exchangeRate) {
     throw new AppError('Exchange rate is undefined.', 400);
   }
@@ -322,18 +387,20 @@ const collectAdminCharges = catchErrors(async (req, res) => {
 
   const paymentReferencePayload = {
     trainingId: investment._id,
-    userId: investment.investor,
-    paymentMode: transactionTypeEnum[0],
+    userId: investment.investor._id,
+    paymentMode: investmentTransactionTypeEnum[0],
   };
 
   const reference = generatePaymentReference(paymentReferencePayload);
 
   const payload = {
     amountPaid: investment.adminChargeFee,
-    userId: investment.investor,
+    userId: investment.investor._id,
+    email: investment.investor.email,
     investmentId: investment._id,
     nairaValue: nairaValue,
     companyPaymentReference: reference,
+    feeType: feeTypeEnum[1],
   };
 
   const result = await payStackInvestmentPaymentInitialized(payload);
@@ -350,6 +417,7 @@ const collectAdminCharges = catchErrors(async (req, res) => {
 });
 
 export {
+  getAllMyInvestments,
   collectAdminCharges,
   approveInvestmentToReceiveAdminCharges,
   getmySingleInvestment,

@@ -9,6 +9,8 @@ import {
   getASingleInvestment,
   getmySingleInvestment,
   investmentInterest,
+  getAllMyInvestments,
+  collectAdminCharges,
 } from '../controller/investmentController.js';
 
 const router = express.Router();
@@ -36,7 +38,7 @@ router.get(
 
 router.put(
   '/approve-investment-to-receive-admin-charges/:investmentId',
-  permission(['admin']),
+  permission(['investor']),
   approveInvestmentToReceiveAdminCharges
 );
 
@@ -44,6 +46,18 @@ router.get(
   '/get-my-investment-by-id/:investmentId',
   permission(['investor']),
   getmySingleInvestment
+);
+
+router.get(
+  '/get-all-my-investments',
+  permission(['investor']),
+  getAllMyInvestments
+);
+
+router.post(
+  '/collect-admin-charge/:investmentId',
+  permission(['investor']),
+  collectAdminCharges
 );
 
 export default router;

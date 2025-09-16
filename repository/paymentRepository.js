@@ -9,9 +9,6 @@ import Enrollment from '../model/enrollmentModel.js';
 import { paymentEnrollmentConfirmationMail } from '../utils/nodemailer.js';
 import { AppError } from '../utils/app.error.js';
 import { capitalizeFirstLetter, formatDate } from '../utils/functions.js';
-import Investor from '../model/investorModel.js';
-import InvestmentPayment from '../model/investmentPaymentModel.js';
-import Investment from '../model/investmentModel.js';
 
 const saveInitializedPayment = async (data) => {
   const {
@@ -119,63 +116,6 @@ const saveInitializedPayment = async (data) => {
   console.log('payment:', payment);
 
   return payment;
-};
-
-const saveInitializedInvestmentPayment = async (data) => {
-  const {
-    userId,
-    investmentId,
-    amountPaid,
-    nairaValue,
-    companyPaymentReference,
-    transactionType,
-    transactionStatus,
-    description,
-    status,
-    message,
-    reference,
-    authorizationUrl,
-  } = data;
-
-  const findInvestor = await Investor.findById(userId);
-
-  if (!findInvestor) {
-    throw new AppError('Investor not found', 404);
-  }
-
-  const investmentDocExist = await Investment.findById({
-    _id: investmentId,
-  });
-
-  if (!investmentDocExist) {
-    throw new AppError('Investment document not found', 404);
-  }
-
-  if (investmentDocExist.isApprovedForInvestment !== true) {
-    throw new AppError(
-      'Investment not yet approved by admin for payment.',
-      404
-    );
-  }
-
-  const newInvestmentPaymentDoc = new InvestmentPayment({
-    investment: investmentDocExist._id,
-    investor: investmentDocExist.investor,
-    payment: {
-      paymentDate: Date.now,
-      amountPaid: amountPaid,
-      nairaValue: nairaValue,
-      transactionType: transactionType,
-      transactionStatus: transactionStatus,
-      description: description,
-      reference: reference,
-      companyPaymentReference: companyPaymentReference,
-      authorizationUrl: authorizationUrl,
-    },
-  });
-
-  await newInvestmentPaymentDoc.save();
-  return newInvestmentPaymentDoc;
 };
 
 const saveInitializedBalance = async (data) => {
@@ -434,7 +374,6 @@ const updatePaymentInitializationWithPaystackData = async (payload) => {
 };
 
 export {
-  saveInitializedInvestmentPayment,
   saveInitializedBalance,
   saveInitializedPayment,
   findPaymentTransactionByReferenceAndUpdateStatus,

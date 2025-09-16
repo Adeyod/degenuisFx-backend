@@ -12,6 +12,7 @@ import {
   enrollmentStatus,
   paymentModeEnum,
   preferedClassModeEnum,
+  feeTypeEnum,
 } from '../utils/enumModules.js';
 import {
   calculateNextPaymentDay,
@@ -199,6 +200,7 @@ const makePayment = catchErrors(async (req, res) => {
     //   paymentMode === paymentModeEnum[1] && value.nextPaymentDate,
     email: userExist.email,
     userId: userExist._id,
+    feeType: feeTypeEnum[0],
   };
 
   const result = await payStackInitialized(userPayload);
@@ -315,6 +317,7 @@ const balancePayment = catchErrors(async (req, res) => {
     companyPaymentReference: reference,
     balance: (studentPaymentDoc.balance -= amountToPay),
     email: user.userEmail,
+    feeType: feeTypeEnum[0],
   };
 
   const result = await payStackPaymentBalanceInitialized(userPayload);

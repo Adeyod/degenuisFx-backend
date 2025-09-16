@@ -7,6 +7,7 @@ const experienceLevel = ['beginner', 'intermediate', 'expert'];
 const paymentModeEnum = ['one-off', 'pay-twice'];
 const preferedClassModeEnum = ['one-on-one', 'regular-class'];
 const paymentStatus = ['pending', 'partially-paid', 'completed'];
+const feeTypeEnum = ['training-fee', 'admin-fee'];
 const enrollmentStatus = [
   'not-enrolled',
   'pending-enrollment',
@@ -14,11 +15,12 @@ const enrollmentStatus = [
   'full-enrollment',
 ];
 const transactionStatusEnum = ['pending', 'success', 'failed'];
-const transactionTypeEnum = ['admin-fee'];
+const investmentTransactionTypeEnum = ['admin-fee'];
 
 const allowedInvestmentDurationEnum = ['3 months', '6 months', '12 months'];
 export {
-  transactionTypeEnum,
+  feeTypeEnum,
+  investmentTransactionTypeEnum,
   allowedInvestmentDurationEnum,
   genderEnum,
   memberRole,

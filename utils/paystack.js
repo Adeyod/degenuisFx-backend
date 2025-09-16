@@ -4,11 +4,18 @@ import {
   saveInitializedPayment,
   saveInitializedBalance,
   updatePaymentInitializationWithPaystackData,
-  saveInitializedInvestmentPayment,
 } from '../repository/paymentRepository.js';
-import { paymentModeEnum } from './enumModules.js';
+import {
+  feeTypeEnum,
+  investmentTransactionTypeEnum,
+  paymentModeEnum,
+} from './enumModules.js';
 import crypto from 'crypto';
 import { AppError } from './app.error.js';
+import {
+  saveInitializedInvestmentPayment,
+  findInvestmentTransactionByReferenceAndUpdateStatus,
+} from '../repository/investmentRepository.js';
 
 const secret = process.env.PAYSTACK_TEST_SECRET_KEY || '';
 
@@ -111,14 +118,14 @@ const payStackInitialized = async (payload) => {
 
 const payStackInvestmentPaymentInitialized = async (payload) => {
   try {
-    const { nairaValue } = payload;
+    const { nairaValue, email } = payload;
 
     console.log('nairaValue:', nairaValue);
     const formattedAmount =
       parseInt(nairaValue.toString().replace(/,/g, ''), 10) * 100;
 
-    // email: email,
     const dataToSend = {
+      email: email,
       amount: formattedAmount,
       metadata: payload,
     };
@@ -135,10 +142,16 @@ const payStackInvestmentPaymentInitialized = async (payload) => {
     );
 
     const parsedData = JSON.parse(response.config.data);
+    console.log(
+      'parsedData.metadata.amountPaid:',
+      parsedData.metadata.amountPaid
+    );
 
     const amt = parseFloat(
       parsedData.metadata.amountPaid.toString().replace(/,/g, '')
     );
+
+    console.log('amt:', amt);
 
     if (isNaN(amt)) {
       throw new AppError(
@@ -150,10 +163,10 @@ const payStackInvestmentPaymentInitialized = async (payload) => {
     const data = {
       userId: payload.userId,
       investmentId: payload.investmentId,
-      amountPaid: amountPaid,
-      nairaValue: nairaValue,
-      companyPaymentReference: payload.companyPaymentReference,
-      transactionType: 'admin fee payment',
+      amountPaid: parsedData.metadata.amountPaid,
+      nairaValue: parsedData.metadata.nairaValue,
+      companyPaymentReference: parsedData.metadata.companyPaymentReference,
+      investmentTransactionType: investmentTransactionTypeEnum[0],
       transactionStatus: 'pending',
       description: 'user paid for admin fee',
       status: response.data.status,
@@ -174,6 +187,7 @@ const payStackInvestmentPaymentInitialized = async (payload) => {
     return { response, result };
   } catch (error) {
     if (error.response) {
+      console.log('error.response.data.message:', error.response.data.message);
       // Error from Paystack API
       throw new AppError(
         error.response.data.message || 'Error from Paystack',
@@ -333,16 +347,30 @@ const paystackCallBack = async (reference) => {
     const paystackResponse = await axios(url, { headers });
 
     console.log('callback paystackResponse:', paystackResponse);
+    console.log(
+      'callback paystackResponse.data.data:',
+      paystackResponse.data.data
+    );
 
     if (paystackResponse.data.data.status === 'success') {
+      const feeType = paystackResponse.data.data.feeType;
+
       const data = {
         amount: paystackResponse.data.data.amount / 100,
         status: paystackResponse.data.data.status,
         reference: paystackResponse.data.data.reference,
       };
 
-      const getTransaction =
-        await findPaymentTransactionByReferenceAndUpdateStatus(data);
+      let getTransaction;
+
+      if (feeType === feeTypeEnum[0]) {
+        getTransaction = await findPaymentTransactionByReferenceAndUpdateStatus(
+          data
+        );
+      } else if (feeType === feeTypeEnum[1]) {
+        getTransaction =
+          findInvestmentTransactionByReferenceAndUpdateStatus(data);
+      }
 
       return getTransaction;
     }
@@ -372,6 +400,7 @@ const paystackWebHook = async (req, res) => {
     if (hash == req.headers['x-paystack-signature']) {
       const event = req.body;
       console.log('webhook event.event:', event.event);
+      console.log('webhook event.event.metadata:', event.event.metadata);
 
       if (event.event === 'charge.success') {
         // GET ACCOUNT USING ACCOUNT ID AND USER ID
@@ -379,7 +408,7 @@ const paystackWebHook = async (req, res) => {
           reference,
           status,
           created_at,
-          metadata: { amountPaid, userId, email },
+          metadata: { amountPaid, userId, email, feeType },
           // authorization: { bank, account_name },
         } = event.data;
 
@@ -393,11 +422,22 @@ const paystackWebHook = async (req, res) => {
         }
 
         // get the transaction and check if transaction_status is still pending. then update it to completed
-        const getTransaction =
-          await findPaymentTransactionByReferenceAndUpdateStatus(
+
+        const sentFeeType = feeType;
+        let getTransaction;
+
+        if (sentFeeType === feeTypeEnum[0]) {
+          getTransaction =
+            await findPaymentTransactionByReferenceAndUpdateStatus(
+              reference,
+              status
+            );
+        } else if (feeType === feeTypeEnum[1]) {
+          getTransaction = findInvestmentTransactionByReferenceAndUpdateStatus(
             reference,
             status
           );
+        }
 
         // if (getTransaction.length > 0) {
         // const data = {
