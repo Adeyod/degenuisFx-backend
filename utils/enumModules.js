@@ -1,4 +1,4 @@
-const genderEnum = ['Female', 'Male', 'Others'];
+const genderEnum = ['female', 'male', 'others'];
 
 const memberRole = ['student', 'investor', 'admin'];
 

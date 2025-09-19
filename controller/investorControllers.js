@@ -119,16 +119,16 @@ const registerInvestor = catchErrors(async (req, res) => {
     }
 
     const newInvestor = await new Investor({
-      firstName: trimmedFirstName,
-      lastName: trimmedLastName,
-      middleName: trimmedMiddleName,
-      email: trimmedEmail,
+      firstName: trimmedFirstName.toLowerCase(),
+      lastName: trimmedLastName.toLowerCase(),
+      middleName: trimmedMiddleName.toLowerCase(),
+      email: trimmedEmail.toLowerCase(),
       password: hashedPassword,
-      countryOfResidence: trimmedCountryOfResidence,
-      stateOfResidence: trimmedStateOfResidence,
-      gender,
+      countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
+      stateOfResidence: trimmedStateOfResidence.toLowerCase(),
+      gender: gender.toLowerCase(),
       DOB,
-      address: trimmedAddress,
+      address: trimmedAddress.toLowerCase(),
       phoneNumber,
       role,
     }).save();
@@ -149,15 +149,15 @@ const registerInvestor = catchErrors(async (req, res) => {
     });
   } else {
     const newInvestor = await new Investor({
-      firstName: trimmedFirstName,
-      lastName: trimmedLastName,
-      email: trimmedEmail,
+      firstName: trimmedFirstName.toLowerCase(),
+      lastName: trimmedLastName.toLowerCase(),
+      email: trimmedEmail.toLowerCase(),
       password: hashedPassword,
-      countryOfResidence: trimmedCountryOfResidence,
-      stateOfResidence: trimmedStateOfResidence,
-      gender,
+      countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
+      stateOfResidence: trimmedStateOfResidence.toLowerCase(),
+      gender: gender.toLowerCase(),
       DOB,
-      address: trimmedAddress,
+      address: trimmedAddress.toLowerCase(),
       phoneNumber,
       role,
     }).save();
@@ -398,12 +398,12 @@ const updateInvestor = catchErrors(async (req, res) => {
       _id: investorId,
     },
     {
-      address: trimmedAddress,
-      countryOfResidence: trimmedCountryOfResidence,
-      stateOfResidence: trimmedStateOfResidence,
-      nokName: trimmedNokName,
-      nokRelationship: trimmedNokRelationship,
-      nokAddress: trimmedNokAddress,
+      address: trimmedAddress.toLowerCase(),
+      countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
+      stateOfResidence: trimmedStateOfResidence.toLowerCase(),
+      nokName: trimmedNokName.toLowerCase(),
+      nokRelationship: trimmedNokRelationship.toLowerCase(),
+      nokAddress: trimmedNokAddress.toLowerCase(),
       nokPhoneNumber,
       phoneNumber,
 
