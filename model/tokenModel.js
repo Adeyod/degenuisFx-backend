@@ -17,15 +17,11 @@ const investorTokenSchema = new mongoose.Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'investor', required: true },
     token: { type: String, required: true },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      expires: 1800,
-    },
   },
   { timestamps: true }
 );
 
+investorTokenSchema.index({ createdAt: 1 }, { expireAfterSeconds: 1800 });
 const StudentToken = mongoose.model('StudentToken', studentTokenSchema);
 const InvestorToken = mongoose.model('InvestorToken', investorTokenSchema);
 
