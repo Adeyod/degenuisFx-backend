@@ -3,6 +3,7 @@ import {
   genderEnum,
   memberRole,
   experienceLevel,
+  preferredTrainingDaysEnum,
 } from '../utils/enumModules.js';
 
 const studentSchema = new mongoose.Schema({
@@ -29,7 +30,11 @@ const studentSchema = new mongoose.Schema({
     },
   },
   phoneNumber: { type: String }, // how are you going to be sending this to me
-  preferredTrainingDays: { type: String },
+  preferredTrainingDays: {
+    type: [String],
+    enum: preferredTrainingDaysEnum,
+    default: [],
+  },
   address: { type: String },
   countryOfResidence: { type: String },
   stateOfResidence: { type: String },

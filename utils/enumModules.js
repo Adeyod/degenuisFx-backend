@@ -18,7 +18,17 @@ const transactionStatusEnum = ['pending', 'success', 'failed'];
 const investmentTransactionTypeEnum = ['admin-fee'];
 
 const allowedInvestmentDurationEnum = ['3 months', '6 months', '12 months'];
+
+const preferredTrainingDaysEnum = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+];
+
 export {
+  preferredTrainingDaysEnum,
   feeTypeEnum,
   investmentTransactionTypeEnum,
   allowedInvestmentDurationEnum,

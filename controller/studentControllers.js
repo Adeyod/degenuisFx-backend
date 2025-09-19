@@ -21,6 +21,7 @@ import Training from '../model/trainingModel.js';
 import { AppError } from '../utils/app.error.js';
 import catchErrors from '../utils/tryCatch.js';
 import { getUserLocation } from '../utils/functions.js';
+import { preferredTrainingDaysEnum } from '../utils/enumModules.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -361,13 +362,6 @@ const updateStudent = catchErrors(async (req, res) => {
     stateOfResidence,
     address,
     phoneNumber,
-
-    // legalKnowledgeAndAcceptance,
-    // highestEducationAttained,
-    // risk appetite,
-    // referralName,
-    // questionsAndComments,
-    // acknowledgment,
   } = req.body;
 
   if (
@@ -377,17 +371,13 @@ const updateStudent = catchErrors(async (req, res) => {
     !infoSource ||
     !phoneNumber ||
     !stateOfResidence ||
-    !preferredTrainingDays
-
-    // !nokName ||
-    // !nokRelationship ||
-    // !nokAddress ||
-    // !nokPhoneNumber ||
-    // !referralName ||
-    // !questionsAndComments ||
-    // !acknowledgment
+    !Array.isArray(preferredTrainingDays) ||
+    preferredTrainingDays.length === 0
   ) {
-    throw new AppError('All fields are required...', 400);
+    throw new AppError(
+      'All fields are required and training days must be an array...',
+      400
+    );
   }
 
   const trimmedAddress = address.trim();
@@ -407,11 +397,16 @@ const updateStudent = catchErrors(async (req, res) => {
     throw new AppError('Invalid character at address field', 400);
   }
 
-  if (forbiddenCharsRegex.test(trimmedPreferredTrainingDays)) {
-    throw new AppError(
-      'Invalid character at preferred training days field',
-      400
-    );
+  const allowedDays = preferredTrainingDaysEnum;
+
+  const normalizedDays = preferredTrainingDays.map((day) =>
+    day.toLowerCase().trim()
+  );
+  const invalidDays = normalizedDays.filter(
+    (day) => !allowedDays.includes(day)
+  );
+  if (invalidDays.length > 0) {
+    throw new AppError(`Invalid training days: ${invalidDays.join(', ')}`, 400);
   }
 
   const user = req.user.userId;
@@ -427,19 +422,14 @@ const updateStudent = catchErrors(async (req, res) => {
       _id: studentId,
     },
     {
-      levelOfForexExperience,
-      preferredTrainingDays: trimmedPreferredTrainingDays,
+      levelOfForexExperience: levelOfForexExperience.toLowerCase(),
+      preferredTrainingDays: normalizedDays,
       infoSource,
       address: trimmedAddress,
       countryOfResidence: trimmedCountryOfResidence,
       stateOfResidence: trimmedStateOfResidence,
       phoneNumber,
-
       isUpdated: true,
-
-      // legalKnowledgeAndAcceptance,
-      // referralName,
-      // questionsAndComments,
     },
     {
       new: true,
