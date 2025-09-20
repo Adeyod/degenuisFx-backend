@@ -302,8 +302,8 @@ const updateInvestor = catchErrors(async (req, res) => {
 
   const trimmedNokName = nokName.trim();
   const trimmedNokRelationship = nokRelationship.trim();
-  const trimmedNokAddress = address.trim();
-  const trimmedAddress = nokAddress.trim();
+  const trimmedNokAddress = nokAddress.trim();
+  const trimmedAddress = address.trim();
   const trimmedCountryOfResidence = countryOfResidence.trim();
   const trimmedStateOfResidence = stateOfResidence.trim();
 
