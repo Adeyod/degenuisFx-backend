@@ -22,17 +22,215 @@ import { AppError } from '../utils/app.error.js';
 import catchErrors from '../utils/tryCatch.js';
 import { getUserLocation } from '../utils/functions.js';
 import { preferredTrainingDaysEnum } from '../utils/enumModules.js';
+import { registerSchemaValidation } from '../utils/validation.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
+// const registerStudent = catchErrors(async (req, res) => {
+//   const {
+//     firstName,
+//     lastName,
+//     middleName,
+//     email,
+//     password,
+//     confirmPassword,
+//     phoneNumber,
+//     address,
+//     countryOfResidence,
+//     stateOfResidence,
+//     gender,
+//     DOB,
+//     coordinates,
+//     role,
+//   } = req.body;
+
+//   console.log('req.body:', req.body);
+
+//   // coordinates = {
+//   //   long: '',
+//   //   lat: '',
+//   // };
+
+//   console.log('coordinates:', coordinates);
+//   const trimmedFirstName = firstName.trim();
+//   const trimmedLastName = lastName.trim();
+//   const trimmedAddress = address.trim();
+//   const trimmedEmail = email.trim();
+//   const trimmedCountryOfResidence = countryOfResidence.trim();
+//   const trimmedStateOfResidence = stateOfResidence.trim();
+//   const trimmedMiddleName = middleName.trim();
+
+//   if (forbiddenCharsRegex.test(trimmedFirstName)) {
+//     throw new AppError(`Invalid character in first name field`, 400);
+//   }
+
+//   if (forbiddenCharsRegex.test(trimmedLastName)) {
+//     throw new AppError(`Invalid character in last name field`, 400);
+//   }
+
+//   if (forbiddenCharsRegex.test(trimmedAddress)) {
+//     throw new AppError(`Invalid character in address field`, 400);
+//   }
+
+//   if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
+//     throw new AppError(`Invalid character in country of residence field`, 400);
+//   }
+
+//   if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
+//     throw new AppError(`Invalid character in state of residence field`, 400);
+//   }
+
+//   // check the email field to prevent input of unwanted characters
+//   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+//     throw new AppError('Invalid input for email...', 400);
+//   }
+
+//   // // strong password check
+//   if (
+//     !/^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,20}$/.test(
+//       password
+//     )
+//   ) {
+//     throw new AppError(
+//       'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
+//       400
+//     );
+//   }
+
+//   if (
+//     typeof coordinates.long !== 'number' ||
+//     typeof coordinates.lat !== 'number'
+//   ) {
+//     throw new AppError('Long and lat must be number.', 400);
+//   }
+
+//   if (password !== confirmPassword) {
+//     throw new AppError('Password and confirm password do not match', 400);
+//   }
+
+//   const alreadyRegistered = await Student.findOne({ email: trimmedEmail });
+//   if (alreadyRegistered) {
+//     throw new AppError('Email already exist', 400);
+//   }
+
+//   const hashedPassword = await bcrypt.hash(password, 10);
+
+//   const token =
+//     crypto.randomBytes(32).toString('hex') +
+//     crypto.randomBytes(32).toString('hex');
+
+//   const geoLocation = await getUserLocation(coordinates.long, coordinates.lat);
+//   const coords = {
+//     type: 'Point',
+//     coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
+//   };
+
+//   if (middleName !== '') {
+//     if (forbiddenCharsRegex.test(trimmedMiddleName)) {
+//       throw new AppError(`Invalid character in middle name field`, 400);
+//     }
+
+//     const newStudent = await new Student({
+//       firstName: trimmedFirstName.toLowerCase(),
+//       lastName: trimmedLastName.toLowerCase(),
+//       middleName: trimmedMiddleName.toLowerCase(),
+//       email: trimmedEmail.toLowerCase(),
+//       password: hashedPassword,
+//       countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
+//       stateOfResidence: trimmedStateOfResidence.toLowerCase(),
+//       geoLocation: geoLocation.country,
+//       coords,
+//       gender: gender.toLowerCase(),
+//       DOB,
+//       address: trimmedAddress,
+//       phoneNumber,
+//       role,
+//     }).save();
+
+//     const newToken = await new StudentToken({
+//       userId: newStudent._id,
+//       token,
+//     }).save();
+
+//     const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
+
+//     await emailVerification(newStudent.email, newStudent.firstName, link);
+
+//     return res.status(201).json({
+//       message:
+//         'Student registration is successful. Please verify your email with the link sent to you',
+//       success: true,
+//       status: 201,
+//     });
+//   } else {
+//     const newStudent = await new Student({
+//       firstName: trimmedFirstName.toLowerCase(),
+//       lastName: trimmedLastName.toLowerCase(),
+//       email: trimmedEmail.toLowerCase(),
+//       password: hashedPassword,
+//       countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
+//       stateOfResidence: trimmedStateOfResidence.toLowerCase(),
+//       geoLocation: geoLocation.country,
+//       coords,
+//       gender: gender.toLowerCase(),
+//       DOB,
+//       role,
+//       address: trimmedAddress.toLowerCase(),
+//       phoneNumber,
+//     }).save();
+
+//     const newToken = await new StudentToken({
+//       userId: newStudent._id,
+//       token,
+//     }).save();
+
+//     // const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
+
+//     const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
+
+//     await emailVerification(newStudent.email, newStudent.firstName, link);
+
+//     return res.status(201).json({
+//       message:
+//         'Student registration is successful. Please verify your email with the link sent to you',
+//       success: true,
+//       status: 201,
+//     });
+//   }
+// });
+
 const registerStudent = catchErrors(async (req, res) => {
+  const payload = {
+    firstName: req.body.firstName.trim().toLowerCase(),
+    lastName: req.body.lastName.trim().toLowerCase(),
+    middleName: req.body.middleName.trim().toLowerCase(),
+    email: req.body.email.trim().toLowerCase(),
+    password: req.body.password.trim(),
+    confirmPassword: req.body.confirmPassword.trim(),
+    phoneNumber: req.body.phoneNumber.trim(),
+    address: req.body.address.trim().toLowerCase(),
+    countryOfResidence: req.body.countryOfResidence.trim().toLowerCase(),
+    stateOfResidence: req.body.stateOfResidence.trim().toLowerCase(),
+    gender: req.body.gender.trim().toLowerCase(),
+    DOB: req.body.DOB,
+    coordinates: req.body.coordinates,
+    role: req.body.role,
+  };
+
+  const { error, value } = registerSchemaValidation.validate(payload, {
+    abortEarly: false,
+  });
+
+  if (error) {
+    throw new AppError(error.details.map((d) => d.message).join(', '), 400);
+  }
+
   const {
     firstName,
     lastName,
     middleName,
     email,
     password,
-    confirmPassword,
     phoneNumber,
     address,
     countryOfResidence,
@@ -41,90 +239,15 @@ const registerStudent = catchErrors(async (req, res) => {
     DOB,
     coordinates,
     role,
-  } = req.body;
-
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !password ||
-    !confirmPassword ||
-    !phoneNumber ||
-    !address ||
-    !countryOfResidence ||
-    !stateOfResidence ||
-    !gender ||
-    !DOB ||
-    !coordinates
-  ) {
-    throw new AppError('Please fill all mandatory fields', 400);
-  }
-
-  // coordinates = {
-  //   long: '',
-  //   lat: '',
-  // };
+  } = value;
 
   console.log('coordinates:', coordinates);
-  const trimmedFirstName = firstName.trim();
-  const trimmedLastName = lastName.trim();
-  const trimmedAddress = address.trim();
-  const trimmedEmail = email.trim();
-  const trimmedCountryOfResidence = countryOfResidence.trim();
-  const trimmedStateOfResidence = stateOfResidence.trim();
-  const trimmedMiddleName = middleName.trim();
 
-  if (forbiddenCharsRegex.test(trimmedFirstName)) {
-    throw new AppError(`Invalid character in first name field`, 400);
-  }
-
-  if (forbiddenCharsRegex.test(trimmedLastName)) {
-    throw new AppError(`Invalid character in last name field`, 400);
-  }
-
-  if (forbiddenCharsRegex.test(trimmedAddress)) {
-    throw new AppError(`Invalid character in address field`, 400);
-  }
-
-  if (forbiddenCharsRegex.test(trimmedCountryOfResidence)) {
-    throw new AppError(`Invalid character in country of residence field`, 400);
-  }
-
-  if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
-    throw new AppError(`Invalid character in state of residence field`, 400);
-  }
-
-  // check the email field to prevent input of unwanted characters
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-    throw new AppError('Invalid input for email...', 400);
-  }
-
-  // // strong password check
-  if (
-    !/^(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-])(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,20}$/.test(
-      password
-    )
-  ) {
-    throw new AppError(
-      'Password must contain at least 1 special character, 1 lowercase letter, and 1 uppercase letter. Also it must be minimum of 8 characters and maximum of 20 characters',
-      400
-    );
-  }
-
-  if (
-    typeof coordinates.long !== 'number' ||
-    typeof coordinates.lat !== 'number'
-  ) {
-    throw new AppError('Long and lat must be number.', 400);
-  }
-
-  if (password !== confirmPassword) {
-    throw new AppError('Password and confirm password do not match', 400);
-  }
-
-  const alreadyRegistered = await Student.findOne({ email: trimmedEmail });
+  const alreadyRegistered = await Student.findOne({
+    email: email.toLowerCase(),
+  });
   if (alreadyRegistered) {
-    throw new AppError('Email already exist', 400);
+    throw new AppError('Email already exists', 400);
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -139,78 +262,38 @@ const registerStudent = catchErrors(async (req, res) => {
     coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
   };
 
-  if (middleName !== '') {
-    if (forbiddenCharsRegex.test(trimmedMiddleName)) {
-      throw new AppError(`Invalid character in middle name field`, 400);
-    }
+  const newStudent = await new Student({
+    firstName: firstName.toLowerCase(),
+    lastName: lastName.toLowerCase(),
+    middleName: middleName ? middleName.toLowerCase() : '',
+    email: email.toLowerCase(),
+    password: hashedPassword,
+    countryOfResidence: countryOfResidence.toLowerCase(),
+    stateOfResidence: stateOfResidence.toLowerCase(),
+    geoLocation: geoLocation.country,
+    coords,
+    gender: gender.toLowerCase(),
+    DOB,
+    address: address.toLowerCase(),
+    phoneNumber,
+    role,
+  }).save();
 
-    const newStudent = await new Student({
-      firstName: trimmedFirstName.toLowerCase(),
-      lastName: trimmedLastName.toLowerCase(),
-      middleName: trimmedMiddleName.toLowerCase(),
-      email: trimmedEmail.toLowerCase(),
-      password: hashedPassword,
-      countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
-      stateOfResidence: trimmedStateOfResidence.toLowerCase(),
-      geoLocation: geoLocation.country,
-      coords,
-      gender: gender.toLowerCase(),
-      DOB,
-      address: trimmedAddress,
-      phoneNumber,
-      role,
-    }).save();
+  const newToken = await new StudentToken({
+    userId: newStudent._id,
+    token,
+  }).save();
 
-    const newToken = await new StudentToken({
-      userId: newStudent._id,
-      token,
-    }).save();
+  const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
 
-    const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
+  await emailVerification(newStudent.email, newStudent.firstName, link);
 
-    await emailVerification(newStudent.email, newStudent.firstName, link);
-
-    return res.status(201).json({
-      message:
-        'Student registration is successful. Please verify your email with the link sent to you',
-      success: true,
-      status: 201,
-    });
-  } else {
-    const newStudent = await new Student({
-      firstName: trimmedFirstName.toLowerCase(),
-      lastName: trimmedLastName.toLowerCase(),
-      email: trimmedEmail.toLowerCase(),
-      password: hashedPassword,
-      countryOfResidence: trimmedCountryOfResidence.toLowerCase(),
-      stateOfResidence: trimmedStateOfResidence.toLowerCase(),
-      geoLocation: geoLocation.country,
-      coords,
-      gender: gender.toLowerCase(),
-      DOB,
-      role,
-      address: trimmedAddress.toLowerCase(),
-      phoneNumber,
-    }).save();
-
-    const newToken = await new StudentToken({
-      userId: newStudent._id,
-      token,
-    }).save();
-
-    // const link = `${process.env.FRONTEND_URL}/student/verify-email/${newToken.userId}/${newToken.token}`;
-
-    const link = `${process.env.FRONTEND_URL}/student/verify-email/?userId=${newToken.userId}&token=${newToken.token}`;
-
-    await emailVerification(newStudent.email, newStudent.firstName, link);
-
-    return res.status(201).json({
-      message:
-        'Student registration is successful. Please verify your email with the link sent to you',
-      success: true,
-      status: 201,
-    });
-  }
+  return res.status(201).json({
+    message:
+      'Student registration is successful. Please verify your email with the link sent to you',
+    success: true,
+    status: 201,
+  });
 });
 
 const verifyStudentEmail = catchErrors(async (req, res) => {
@@ -302,7 +385,7 @@ const loginStudent = catchErrors(async (req, res) => {
       400
     );
   } else {
-    const { password, ...others } = isStudent._doc;
+    const { password, coords, ...others } = isStudent._doc;
 
     const jwtSign = await generateAccessToken(
       others._id,
@@ -340,11 +423,20 @@ const loginStudent = catchErrors(async (req, res) => {
     if (!jwtSign) {
       throw new AppError('Unable to sign user', 400);
     }
+
+    const userObj = {
+      ...others,
+      coordinates: {
+        lat: coords.coordinates[1],
+        long: coords.coordinates[0],
+      },
+    };
+
     return res.status(200).json({
       message: `${others.role} login successfully`,
       success: true,
       status: 200,
-      user: others,
+      user: userObj,
       // paymentDoc: studentPaymentDocs && studentPaymentDocs,
       // enrollement: studentEnrollmentDocs ? studentEnrollmentDocs : null,
       accessToken: jwtSign,
@@ -440,7 +532,7 @@ const updateStudent = catchErrors(async (req, res) => {
     throw new AppError('unable to update student', 404);
   }
 
-  const { password, ...others } = findAndUpdateStudent._doc;
+  const { password, coords, ...others } = findAndUpdateStudent._doc;
 
   const training = await Training.find();
 
@@ -461,13 +553,21 @@ const updateStudent = catchErrors(async (req, res) => {
     training: training[0]._id,
   });
 
+  const userObj = {
+    ...others,
+    coordinates: {
+      lat: coords.coordinates[1],
+      long: coords.coordinates[0],
+    },
+  };
+
   return res.status(200).json({
     message: `Student profile updated successfully`,
     success: true,
     status: 200,
     paymentDoc: studentPaymentDocs && studentPaymentDocs,
     enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
-    user: others,
+    user: userObj,
   });
 });
 
@@ -489,7 +589,7 @@ const getStudent = catchErrors(async (req, res) => {
 
   const training = await Training.find();
 
-  const { password, ...others } = studentDetails._doc;
+  const { password, coords, ...others } = studentDetails._doc;
 
   const studentPaymentDocs = await Payment.findOne({
     userId: others._id,
@@ -508,11 +608,19 @@ const getStudent = catchErrors(async (req, res) => {
     training: training[0]._id,
   });
 
+  const userObj = {
+    ...others,
+    coordinates: {
+      lat: coords.coordinates[1],
+      long: coords.coordinates[0],
+    },
+  };
+
   return res.status(200).json({
     message: ' Student fetched successfully',
     success: true,
     status: 200,
-    user: others,
+    user: userObj,
     paymentDoc: studentPaymentDocs && studentPaymentDocs,
     enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
   });
@@ -782,7 +890,7 @@ const getSingleStudent = catchErrors(async (req, res) => {
     throw new AppError('Student not found', 404);
   }
 
-  const { password, ...others } = studentDetails._doc;
+  const { password, coords, ...others } = studentDetails._doc;
 
   const training = await Training.find();
 
@@ -803,11 +911,19 @@ const getSingleStudent = catchErrors(async (req, res) => {
     training: training[0]._id,
   });
 
+  const userObj = {
+    ...others,
+    coordinates: {
+      lat: coords.coordinates[1],
+      long: coords.coordinates[0],
+    },
+  };
+
   return res.status(200).json({
     message: ' Student fetched successfully',
     success: true,
     status: 200,
-    student: others,
+    student: userObj,
     paymentDoc: studentPaymentDocs && studentPaymentDocs,
     enrollment: studentEnrollmentDocs ? studentEnrollmentDocs : null,
   });
