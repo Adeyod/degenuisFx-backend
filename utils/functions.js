@@ -51,9 +51,9 @@ const getUserLocation = async (long, lat) => {
     const url = `https://us1.locationiq.com/v1/reverse.php?key=${process.env.LOCATIONIQ_API_KEY}&lat=${lat}&lon=${long}&format=json`;
 
     const response = await axios.get(url);
-    console.log('response:', response.data);
-    const country = response.data.address.country;
-    const countryCode = response.data.address.country_code.toUpperCase();
+    console.log('getUserLocation response:', response.data);
+    const country = response?.data?.address?.country;
+    const countryCode = response?.data?.address?.country_code?.toUpperCase();
     return { country, countryCode };
   } catch (error) {
     console.log(error);

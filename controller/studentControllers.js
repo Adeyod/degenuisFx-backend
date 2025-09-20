@@ -1,4 +1,3 @@
-import Student from '../model/studentModel.js';
 import {
   emailVerification,
   forgotPasswordSender,
@@ -23,6 +22,7 @@ import catchErrors from '../utils/tryCatch.js';
 import { getUserLocation } from '../utils/functions.js';
 import { preferredTrainingDaysEnum } from '../utils/enumModules.js';
 import { registerSchemaValidation } from '../utils/validation.js';
+import Student from '../model/studentModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -257,6 +257,7 @@ const registerStudent = catchErrors(async (req, res) => {
     crypto.randomBytes(32).toString('hex');
 
   const geoLocation = await getUserLocation(coordinates.long, coordinates.lat);
+  console.log('geoLocation:', geoLocation);
   const coords = {
     type: 'Point',
     placeId: coordinates.placeId,
@@ -271,7 +272,7 @@ const registerStudent = catchErrors(async (req, res) => {
     password: hashedPassword,
     countryOfResidence: countryOfResidence.toLowerCase(),
     stateOfResidence: stateOfResidence.toLowerCase(),
-    geoLocation: geoLocation.country,
+    geoLocation: geoLocation?.country,
     coords,
     gender: gender.toLowerCase(),
     DOB,
