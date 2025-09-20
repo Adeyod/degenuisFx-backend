@@ -37,7 +37,7 @@ const registerInvestor = catchErrors(async (req, res) => {
     gender: req.body.gender.trim().toLowerCase(),
     DOB: req.body.DOB,
     coordinates: req.body.coordinates,
-    role: req.body.role,
+    role: req.body.role.toLowerCase(),
   };
 
   const { error, value } = registerSchemaValidation.validate(payload, {
