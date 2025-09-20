@@ -80,6 +80,7 @@ const registerInvestor = catchErrors(async (req, res) => {
   const geoLocation = await getUserLocation(coordinates.long, coordinates.lat);
   const coords = {
     type: 'Point',
+    placeId: coordinates.placeId,
     coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
   };
 
@@ -237,6 +238,7 @@ const loginInvestor = catchErrors(async (req, res) => {
 
     const userObj = {
       ...others,
+      placeId: coords.placeId,
       coordinates: {
         lat: coords.coordinates[1],
         long: coords.coordinates[0],
@@ -369,6 +371,7 @@ const updateInvestor = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],
@@ -406,6 +409,7 @@ const getInvestor = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],
@@ -678,6 +682,7 @@ const getSingleInvestor = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],

@@ -79,6 +79,7 @@ const registerSchemaValidation = Joi.object({
   coordinates: Joi.object({
     long: Joi.number().required(),
     lat: Joi.number().required(),
+    placeId: Joi.string().required(),
   }).required(),
   role: Joi.string().required(),
 });

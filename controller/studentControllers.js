@@ -259,6 +259,7 @@ const registerStudent = catchErrors(async (req, res) => {
   const geoLocation = await getUserLocation(coordinates.long, coordinates.lat);
   const coords = {
     type: 'Point',
+    placeId: coordinates.placeId,
     coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
   };
 
@@ -426,6 +427,7 @@ const loginStudent = catchErrors(async (req, res) => {
 
     const userObj = {
       ...others,
+      placeId: coords.placeId,
       coordinates: {
         lat: coords.coordinates[1],
         long: coords.coordinates[0],
@@ -555,6 +557,7 @@ const updateStudent = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],
@@ -610,6 +613,7 @@ const getStudent = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],
@@ -913,6 +917,7 @@ const getSingleStudent = catchErrors(async (req, res) => {
 
   const userObj = {
     ...others,
+    placeId: coords.placeId,
     coordinates: {
       lat: coords.coordinates[1],
       long: coords.coordinates[0],

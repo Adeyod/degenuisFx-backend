@@ -19,6 +19,7 @@ const investorSchema = new mongoose.Schema({
       enum: ['Point'], // GeoJSON Point
       default: 'Point',
     },
+    placeId: { type: String },
     coordinates: {
       type: [Number], // [longitude, latitude]
       required: true,
