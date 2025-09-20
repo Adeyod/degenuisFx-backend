@@ -478,7 +478,6 @@ const updateStudent = catchErrors(async (req, res) => {
   const trimmedAddress = address.trim();
   const trimmedCountryOfResidence = countryOfResidence.trim();
   const trimmedStateOfResidence = stateOfResidence.trim();
-  const trimmedPreferredTrainingDays = preferredTrainingDays.trim();
 
   if (forbiddenCharsRegex.test(trimmedStateOfResidence)) {
     throw new AppError('Invalid character at state of residence', 400);
