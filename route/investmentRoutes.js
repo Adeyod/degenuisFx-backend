@@ -11,11 +11,17 @@ import {
   investmentInterest,
   getAllMyInvestments,
   collectAdminCharges,
+  confirmPaystackInvestmentUrlValidity,
 } from '../controller/investmentController.js';
 
 const router = express.Router();
 
 router.use(verifyAccessToken);
+router.get(
+  '/paystack-investment-auth-confirm/:reference',
+  permission(['investor']),
+  confirmPaystackInvestmentUrlValidity
+);
 
 router.post(
   '/investment-interest',
@@ -38,7 +44,7 @@ router.get(
 
 router.put(
   '/approve-investment-to-receive-admin-charges/:investmentId',
-  permission(['investor']),
+  permission(['admin']),
   approveInvestmentToReceiveAdminCharges
 );
 

@@ -19,6 +19,7 @@ import { AppError } from '../utils/app.error.js';
 import catchErrors from '../utils/tryCatch.js';
 import { getUserLocation } from '../utils/functions.js';
 import { registerSchemaValidation } from '../utils/validation.js';
+import InvestmentPayment from '../model/investmentPaymentModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -211,6 +212,10 @@ const loginInvestor = catchErrors(async (req, res) => {
   } else {
     const { password, coords, ...others } = isInvestor._doc;
 
+    const investmentPaymentDoc = await InvestmentPayment.find({
+      investor: others._id,
+    });
+
     const jwtSign = await generateAccessToken(
       others._id,
       others.email,
@@ -250,6 +255,7 @@ const loginInvestor = catchErrors(async (req, res) => {
       success: true,
       status: 200,
       user: userObj,
+      investmentPaymentDoc: investmentPaymentDoc,
       accessToken: jwtSign,
       refreshToken,
     });
@@ -368,6 +374,9 @@ const updateInvestor = catchErrors(async (req, res) => {
   }
 
   const { password, coords, ...others } = findAndUpdateInvestor._doc;
+  const investmentPaymentDoc = await InvestmentPayment.find({
+    investor: others._id,
+  });
 
   const userObj = {
     ...others,
@@ -383,6 +392,7 @@ const updateInvestor = catchErrors(async (req, res) => {
     success: true,
     status: 200,
     user: userObj,
+    investmentPaymentDoc: investmentPaymentDoc,
   });
 });
 

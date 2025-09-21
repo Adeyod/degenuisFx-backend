@@ -88,8 +88,6 @@ const getUsdToNgnRate = async () => {
   }
 };
 
-getUsdToNgnRate();
-
 const capitalizeFirstLetter = (payload) => {
   const value = payload.charAt(0).toUpperCase() + payload.slice(1);
 

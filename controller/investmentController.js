@@ -12,6 +12,7 @@ import {
   getUsdToNgnRate,
 } from '../utils/functions.js';
 import {
+  paystackAuthUrlValidity,
   payStackInitialized,
   payStackInvestmentPaymentInitialized,
 } from '../utils/paystack.js';
@@ -343,6 +344,8 @@ const collectAdminCharges = catchErrors(async (req, res) => {
     throw new AppError('Investment ID is required.', 400);
   }
 
+  const user = req.user.userId;
+
   const investment = await Investment.findById({
     _id: investmentId,
   }).populate('investor');
@@ -355,6 +358,10 @@ const collectAdminCharges = catchErrors(async (req, res) => {
     throw new AppError('Investor email not found.', 404);
   }
   console.log('investment:', investment);
+
+  if (investment.investor._id.toString() !== user.toString()) {
+    throw new AppError('Not the authorized user', 400);
+  }
 
   if (investment.isApprovedForInvestment !== true) {
     throw new AppError(
@@ -416,7 +423,72 @@ const collectAdminCharges = catchErrors(async (req, res) => {
   });
 });
 
+const confirmPaystackInvestmentUrlValidity = catchErrors(async (req, res) => {
+  const { reference } = req.params;
+
+  const response = await paystackAuthUrlValidity(reference);
+
+  const userId = req.user.userId;
+  if (userId.toString() !== response.userId.toString()) {
+    throw new AppError('Not the authorized user', 400);
+  }
+
+  const user = await Investor.findOne({
+    _id: Object(response.userId),
+    email: response.email,
+  });
+
+  if (!user) {
+    throw new AppError('User not found.', 404);
+  }
+
+  const paymentDoc = await InvestmentPayment.findOne({
+    investor: user._id,
+    reference: response.reference,
+  });
+
+  if (!paymentDoc) {
+    throw new AppError('Investment payment document not found.', 404);
+  }
+
+  console.log('paymentDoc:', paymentDoc);
+  const investment = await Investment.findOne({
+    investor: user._id,
+    _id: paymentDoc.investment,
+  });
+
+  if (!investment) {
+    throw new AppError('Investment not found.', 404);
+  }
+
+  if (investment.isApprovedForInvestment !== true) {
+    throw new AppError('Admin charges is not yet approved for payment.', 400);
+  }
+
+  if (investment.isAdminChargesPaid !== false) {
+    throw new AppError(
+      'Admin charges for this investment has already being paid.',
+      400
+    );
+  }
+
+  if (response.message === 'Authorization URL has expired.') {
+    if (paymentDoc) {
+      await paymentDoc.deleteOne();
+      throw new AppError('authorization url expired.', 400);
+    }
+  } else if (response.message === 'Authorization URL still valid.') {
+    return res.status(200).json({
+      message: 'Authorization URL validation successfully',
+      authorizationUrl: paymentDoc.authorizationUrl,
+      success: true,
+      status: 200,
+    });
+  }
+});
+
 export {
+  confirmPaystackInvestmentUrlValidity,
   getAllMyInvestments,
   collectAdminCharges,
   approveInvestmentToReceiveAdminCharges,

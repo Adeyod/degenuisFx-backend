@@ -15,13 +15,17 @@ const router = express.Router();
 router.post('/web-hook', getPaymentTransactionResponseFromPaystackWebhook);
 router.get('/call-back/:reference', getPaystackCallBack);
 
-router.get('/paystack-auth-confirm/:reference', confirmPaystackAuthUrlValidity);
-
 router.post(
   '/make-payment',
   verifyAccessToken,
   permission(['student']),
   makePayment
+);
+router.get(
+  '/paystack-auth-confirm/:reference',
+  verifyAccessToken,
+  permission(['student']),
+  confirmPaystackAuthUrlValidity
 );
 
 router.put(
