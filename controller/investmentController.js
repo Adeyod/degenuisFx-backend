@@ -139,8 +139,22 @@ const getAllInvestments = catchErrors(async (req, res) => {
     throw new AppError('Investments not found.', 404);
   }
 
+  const investmentsWithPayments = await Promise.all(
+    response.map(async (investment) => {
+      const payment = await InvestmentPayment.findOne({
+        investment: investment._id,
+        investor: investment.investor._id,
+      });
+
+      return {
+        ...investment.toObject(),
+        investmentPaymentDoc: payment || null,
+      };
+    })
+  );
+
   const investmentObject = {
-    investments: response,
+    investments: investmentsWithPayments,
     totalPages: pages,
     totalCount: count,
   };
@@ -195,8 +209,22 @@ const getAllInvestmentsNotYetApproved = catchErrors(async (req, res) => {
     throw new AppError('Investments not found.', 404);
   }
 
+  const investmentsWithPayments = await Promise.all(
+    response.map(async (investment) => {
+      const payment = await InvestmentPayment.findOne({
+        investment: investment._id,
+        investor: investment.investor._id,
+      });
+
+      return {
+        ...investment.toObject(),
+        investmentPaymentDoc: payment || null,
+      };
+    })
+  );
+
   const investmentObject = {
-    investments: response,
+    investments: investmentsWithPayments,
     totalPages: pages,
     totalCount: count,
   };
@@ -216,17 +244,33 @@ const getASingleInvestment = catchErrors(async (req, res) => {
     throw new AppError('Investment ID is required.', 400);
   }
 
-  const investment = await Investment.findById({ _id: investmentId });
+  const investment = await Investment.findById({ _id: investmentId }).populate(
+    'investor',
+    '-password'
+  );
 
   if (!investment) {
     throw new AppError('Investment not found.', 404);
   }
 
+  // console.log('investment:', investment);
+
+  const investmentWithPayment = await InvestmentPayment.findOne({
+    investment: investment._id,
+    investor: investment.investor._id,
+  });
+
+  const collapsedObj = {
+    ...investment.toObject(),
+    investmentPaymentDoc: investmentWithPayment,
+  };
+  console.log('collapsedObj:', collapsedObj);
+
   return res.status(200).json({
     message: 'Investment fetched successfully.',
     success: true,
     status: 200,
-    investment,
+    investment: collapsedObj,
   });
 });
 
@@ -248,11 +292,22 @@ const getmySingleInvestment = catchErrors(async (req, res) => {
     throw new AppError('Investment not found.', 404);
   }
 
+  const investmentWithPayment = await InvestmentPayment.findOne({
+    investment: investment._id,
+    investor: investment.investor._id,
+  });
+
+  const collapsedObj = {
+    ...investment.toObject(),
+    investmentPaymentDoc: investmentWithPayment,
+  };
+  console.log('collapsedObj:', collapsedObj);
+
   return res.status(200).json({
     message: 'Investment fetched successfully.',
     success: true,
     status: 200,
-    investment,
+    investment: collapsedObj,
   });
 });
 

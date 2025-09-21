@@ -416,6 +416,9 @@ const getInvestor = catchErrors(async (req, res) => {
   }
 
   const { password, coords, ...others } = investorDetails._doc;
+  const investmentPaymentDoc = await InvestmentPayment.find({
+    investor: others._id,
+  });
 
   const userObj = {
     ...others,
@@ -431,6 +434,7 @@ const getInvestor = catchErrors(async (req, res) => {
     success: true,
     status: 200,
     user: userObj,
+    investmentPaymentDoc: investmentPaymentDoc,
   });
 });
 
@@ -690,6 +694,11 @@ const getSingleInvestor = catchErrors(async (req, res) => {
 
   const { password, coords, ...others } = investorDetails._doc;
 
+  // const myInvestments = await
+  const investmentPaymentDoc = await InvestmentPayment.find({
+    investor: others._id,
+  });
+
   const userObj = {
     ...others,
     placeId: coords.placeId,
@@ -704,6 +713,7 @@ const getSingleInvestor = catchErrors(async (req, res) => {
     success: true,
     status: 200,
     investor: userObj,
+    investmentPaymentDoc: investmentPaymentDoc,
   });
 });
 
