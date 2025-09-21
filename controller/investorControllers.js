@@ -20,6 +20,7 @@ import catchErrors from '../utils/tryCatch.js';
 import { getUserLocation } from '../utils/functions.js';
 import { registerSchemaValidation } from '../utils/validation.js';
 import InvestmentPayment from '../model/investmentPaymentModel.js';
+import Investment from '../model/investmentModel.js';
 
 const forbiddenCharsRegex = /[|!{}()&=[\]===><>]/;
 
@@ -708,6 +709,8 @@ const getSingleInvestor = catchErrors(async (req, res) => {
     },
   };
 
+  console.log('investmentPaymentDoc:', investmentPaymentDoc);
+
   return res.status(200).json({
     message: ' investor fetched successfully',
     success: true,
@@ -812,14 +815,30 @@ const getAllInvestors = catchErrors(async (req, res) => {
       throw new AppError('Page not found', 404);
     }
   }
-  const response = await query.sort({ createdAt: -1 });
+  const investors = await query.sort({ createdAt: -1 });
 
-  if (!response || response.length === 0) {
+  if (!investors || investors.length === 0) {
     throw new AppError('Investors not found', 404);
   }
 
+  const investorWithRelations = await Promise.all(
+    investors.map(async (investor) => {
+      const investmentPaymentDoc = await InvestmentPayment.find({
+        investor: investor._id,
+      });
+      const investments = await Investment.find({ investor: investor._id });
+
+      const { password, ...others } = investor.toObject();
+      return {
+        ...others,
+        investmentPaymentDoc: investmentPaymentDoc || [],
+        investments: investments || [],
+      };
+    })
+  );
+
   const investorObject = {
-    Investors: response,
+    Investors: investorWithRelations,
     totalPages: pages,
     totalCount: count,
   };

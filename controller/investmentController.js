@@ -353,8 +353,22 @@ const getAllMyInvestments = catchErrors(async (req, res) => {
     throw new AppError('Investments not found.', 404);
   }
 
+  const investmentsWithPayments = await Promise.all(
+    response.map(async (investment) => {
+      const payment = await InvestmentPayment.findOne({
+        investment: investment._id,
+        investor: investment.investor,
+      });
+
+      return {
+        ...investment.toObject(),
+        investmentPaymentDoc: payment || null,
+      };
+    })
+  );
+
   const investmentObject = {
-    investments: response,
+    investments: investmentsWithPayments,
     totalPages: pages,
     totalCount: count,
   };
