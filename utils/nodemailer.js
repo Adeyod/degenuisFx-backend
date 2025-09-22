@@ -35,6 +35,10 @@ const trainingCompletionCongratulationTemplate = readFileSync(
   join(__dirname, 'htmlTemplates', 'trainingCompletionCongratulations.html'),
   'utf8'
 );
+const balancePaymentReminderTemplate = readFileSync(
+  join(__dirname, 'htmlTemplates', 'balancePaymentReminder.html'),
+  'utf8'
+);
 
 const emailVerification = async (email, firstName, link) => {
   try {
@@ -113,8 +117,10 @@ const paymentEnrollmentConfirmationMail = async ({
   }
 };
 
-const trainingCompletionCongratulationMail = async (studentName, email) => {
+const trainingCompletionCongratulationMail = async ({ studentName, email }) => {
   try {
+    console.log('studentName:', studentName);
+    console.log('email:', email);
     const trainingCompletionCongratulationContent =
       trainingCompletionCongratulationTemplate.replace(
         '{{studentName}}',
@@ -136,7 +142,47 @@ const trainingCompletionCongratulationMail = async (studentName, email) => {
   }
 };
 
+const balancePaymentReminder = async ({
+  fullName,
+  amountPaid,
+  courseType,
+  dueDate,
+  balanceAmount,
+  totalFee,
+  paymentDate,
+  email,
+}) => {
+  try {
+    console.log('fullName:', fullName);
+    console.log('email:', email);
+    const balancePaymentReminderContent = balancePaymentReminderTemplate
+      .replace('{{fullName}}', fullName)
+      .replace('{fullName}', fullName)
+      .replace('{{courseType}}', courseType)
+      .replace('{{dueDate}}', dueDate)
+      .replace('{{balanceAmount}}', balanceAmount)
+      .replace('{{totalFee}}', totalFee)
+      .replace('{{paymentDate}}', paymentDate)
+      .replace('{{amountPaid}}', amountPaid)
+      .replace('{amountPaid}', amountPaid);
+
+    const info = await transporter.sendMail({
+      text: `Welcome ${fullName}`,
+      subject: 'Balance Payment Reminder',
+      to: email,
+      sender: process.env.USER,
+      html: balancePaymentReminderContent,
+    });
+
+    return info;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+
 export {
+  balancePaymentReminder,
   trainingCompletionCongratulationMail,
   emailVerification,
   paymentEnrollmentConfirmationMail,

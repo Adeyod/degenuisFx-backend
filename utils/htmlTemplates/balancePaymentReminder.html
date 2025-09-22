@@ -35,7 +35,7 @@
             <tr>
               <td align="center" style="padding: 20px">
                 <img
-                  src="./assets/logo.png"
+                  src="https://res.cloudinary.com/dgxyjw6q8/image/upload/v1757350077/Logistic%20App/jvnysdpifrnkxvtp0dbd.jpg"
                   alt="DeGenius FX Academy"
                   width="80"
                   style="display: block"
@@ -49,13 +49,13 @@
                 <h2 style="margin: 0 0 15px; color: #1824a6">
                   Balance of Payment Reminder
                 </h2>
-                <p>Dear <%= fullName %>,</p>
+                <p>Dear {{fullName}},</p>
                 <p>
                   I hope you're doing well. This is a courteous reminder
                   regarding the outstanding balance for your enrollment at
                   DeGenius FX Academy. We acknowledged the part payment of
-                  <strong><%= amountPaid %></strong> received on
-                  <strong><%= paymentDate %></strong>, and we appreciate your
+                  <strong>{{amountPaid}}</strong> received on
+                  <strong>{{paymentDate}}</strong>, and we appreciate your
                   commitment to starting your training with us.
                 </p>
                 <h3 style="color: #1824a6">Enrollment Summary:</h3>
@@ -67,29 +67,29 @@
                 >
                   <tr>
                     <td>Student Name:</td>
-                    <td><%= fullName %></td>
+                    <td>{fullName}</td>
                   </tr>
                   <tr>
                     <td>Course Type:</td>
-                    <td><%= courseType %></td>
+                    <td>{{courseType}}</td>
                   </tr>
                   <tr>
                     <td>Total Fee:</td>
-                    <td><%= totalFee %></td>
+                    <td>{{totalFee}}</td>
                   </tr>
                   <tr>
                     <td>Amount Paid:</td>
-                    <td><%= amountPaid %></td>
+                    <td>{amountPaid}</td>
                   </tr>
                   <tr>
                     <td>Outstanding Balance:</td>
-                    <td><%= balanceAmount %></td>
+                    <td>{{balanceAmount}}</td>
                   </tr>
                 </table>
                 <p>
                   To ensure smooth access to your training schedule and course
                   resources, we kindly request that the remaining balance be
-                  settled on or before <strong><%= dueDate %></strong>.
+                  settled on or before <strong>{{dueDate}}</strong>.
                 </p>
                 <p>
                   If you’ve already made the payment, please disregard this

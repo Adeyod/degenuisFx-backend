@@ -23,6 +23,7 @@ const paymentSchema = new mongoose.Schema(
       ref: 'Training',
       required: true,
     },
+    isPaymentReminderSent: { type: Boolean, default: false },
     dueDate: { type: Date },
     trainingFee: { type: Number, required: true },
     balance: { type: Number },

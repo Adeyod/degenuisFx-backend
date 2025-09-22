@@ -514,6 +514,14 @@ const updateStudent = catchErrors(async (req, res) => {
     throw new AppError('Not the authorized user', 400);
   }
 
+  const studentUpdated = await Student.findById({
+    _id: studentId,
+  });
+
+  if (studentUpdated.isUpdated === true) {
+    throw new AppError('You have updated your profile ones.', 400);
+  }
+
   const findAndUpdateStudent = await Student.findByIdAndUpdate(
     {
       _id: studentId,
