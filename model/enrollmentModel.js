@@ -21,6 +21,8 @@ const enrollmentSchema = new mongoose.Schema(
       enum: enrollmentStatus,
       default: enrollmentStatus[0],
     },
+    endDate: { type: Date },
+    isCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

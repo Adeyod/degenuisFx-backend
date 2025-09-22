@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { AppError } from './app.error.js';
+import Enrollment from '../model/enrollmentModel.js';
+import { trainingCompletionCongratulationMail } from './nodemailer.js';
 
 const calculateNextPaymentDay = () => {
   const gracePeriod = 30;
@@ -117,6 +119,32 @@ const formatDate = (date) => {
 
   return dateFormatted;
 };
+
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
+setInterval(async () => {
+  try {
+    console.log('I am running mail to send course completion message.');
+    const now = new Date();
+    const enrollments = await Enrollment.find({
+      endDate: { $lte: now },
+      isCompleted: false,
+    }).populate('studentId, -password');
+
+    for (const enrollment of enrollments) {
+      const fullName = `${enrollment.studentId.firstName} ${enrollment.studentId.lastName}`;
+      await trainingCompletionCongratulationMail({
+        email: enrollment.studentId.email,
+        studentName: fullName,
+      });
+
+      enrollment.isCompleted = true;
+      await enrollment.save();
+    }
+  } catch (error) {
+    throw new AppError('Error sending course completion mail', 400);
+  }
+}, ONE_DAY);
 
 export {
   getUsdToNgnRate,

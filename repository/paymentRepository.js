@@ -44,10 +44,13 @@ const saveInitializedPayment = async (data) => {
     training: training._id,
   });
 
+  const endDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
+
   if (enrollementExist) {
     (enrollementExist.preferedClassMode = preferedClassMode),
       (enrollementExist.paymentMode = paymentMode),
       (enrollementExist.enrollmentStatus = enrollmentStatus[1]),
+      (enrollementExist.endDate = endDate),
       (enrollment = enrollementExist);
   } else {
     const newEnrollment = new Enrollment({
@@ -55,6 +58,7 @@ const saveInitializedPayment = async (data) => {
       training: training,
       preferedClassMode: preferedClassMode,
       paymentMode: paymentMode,
+      endDate: endDate,
       enrollmentStatus: enrollmentStatus[1],
     });
     await newEnrollment.save();
