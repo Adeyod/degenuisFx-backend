@@ -125,11 +125,15 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
 setInterval(async () => {
   try {
     console.log('I am running mail to send course completion message.');
-    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const enrollments = await Enrollment.find({
-      endDate: { $lte: now },
+      endDate: { $lte: today },
       isCompleted: false,
-    }).populate('studentId, -password');
+    }).populate('studentId', '-password');
+
+    console.log('enrollments:', enrollments);
 
     for (const enrollment of enrollments) {
       const fullName = `${enrollment.studentId.firstName} ${enrollment.studentId.lastName}`;
@@ -140,9 +144,11 @@ setInterval(async () => {
 
       enrollment.isCompleted = true;
       await enrollment.save();
+      console.log('enrollment:', enrollment);
     }
   } catch (error) {
-    throw new AppError('Error sending course completion mail', 400);
+    // throw new AppError('Error sending course completion mail', 400);
+    console.log('Error sending course completion mail');
   }
 }, ONE_DAY);
 

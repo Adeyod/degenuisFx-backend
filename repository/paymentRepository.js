@@ -44,7 +44,9 @@ const saveInitializedPayment = async (data) => {
     training: training._id,
   });
 
-  const endDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 120);
+  endDate.setHours(0, 0, 0, 0);
 
   if (enrollementExist) {
     (enrollementExist.preferedClassMode = preferedClassMode),

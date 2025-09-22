@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balance Payment Reminder</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    "
+  >
+    <!-- Wrapper -->
+    <table
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      bgcolor="#f4f4f4"
+    >
+      <tr>
+        <td align="center" style="padding: 20px 0">
+          <!-- Container -->
+          <table
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="600"
+            style="background: #ffffff; border-radius: 8px; overflow: hidden"
+          >
+            <!-- Header -->
+            <tr>
+              <td align="center" style="padding: 20px">
+                <img
+                  src="./assets/logo.png"
+                  alt="DeGenius FX Academy"
+                  width="80"
+                  style="display: block"
+                />
+              </td>
+            </tr>
+
+            <!-- Body (Balance Reminder) -->
+            <tr>
+              <td style="padding: 30px; color: #333333">
+                <h2 style="margin: 0 0 15px; color: #1824a6">
+                  Balance of Payment Reminder
+                </h2>
+                <p>Dear <%= fullName %>,</p>
+                <p>
+                  I hope you're doing well. This is a courteous reminder
+                  regarding the outstanding balance for your enrollment at
+                  DeGenius FX Academy. We acknowledged the part payment of
+                  <strong><%= amountPaid %></strong> received on
+                  <strong><%= paymentDate %></strong>, and we appreciate your
+                  commitment to starting your training with us.
+                </p>
+                <h3 style="color: #1824a6">Enrollment Summary:</h3>
+                <table
+                  width="100%"
+                  cellpadding="5"
+                  cellspacing="0"
+                  style="border: 1px solid #ddd"
+                >
+                  <tr>
+                    <td>Student Name:</td>
+                    <td><%= fullName %></td>
+                  </tr>
+                  <tr>
+                    <td>Course Type:</td>
+                    <td><%= courseType %></td>
+                  </tr>
+                  <tr>
+                    <td>Total Fee:</td>
+                    <td><%= totalFee %></td>
+                  </tr>
+                  <tr>
+                    <td>Amount Paid:</td>
+                    <td><%= amountPaid %></td>
+                  </tr>
+                  <tr>
+                    <td>Outstanding Balance:</td>
+                    <td><%= balanceAmount %></td>
+                  </tr>
+                </table>
+                <p>
+                  To ensure smooth access to your training schedule and course
+                  resources, we kindly request that the remaining balance be
+                  settled on or before <strong><%= dueDate %></strong>.
+                </p>
+                <p>
+                  If you’ve already made the payment, please disregard this
+                  message or kindly reply with your payment confirmation for
+                  record purpose.
+                </p>
+                <p>Warm regards,<br />DeGenius FX Academy</p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                bgcolor="#1824A6"
+                style="
+                  padding: 20px;
+                  text-align: center;
+                  color: #ffffff;
+                  font-size: 14px;
+                "
+              >
+                <p style="margin: 0">Follow us:</p>
+                <p>
+                  <a
+                    href="https://www.linkedin.com/in/degenius-fx-93b389127"
+                    style="color: #e0a106; text-decoration: none"
+                    >Linkedin</a
+                  >
+                  |
+                  <a
+                    href="https://www.facebook.com/degeniusfx"
+                    style="color: #e0a106; text-decoration: none"
+                    >Facebook</a
+                  >
+                  |
+                  <a
+                    href="https://www.instagram.com/degenius_fx"
+                    style="color: #e0a106; text-decoration: none"
+                    >Instagram</a
+                  >
+                </p>
+                <p style="margin: 10px 0 0">
+                  &copy; 2025 DeGenius FX Academy. All rights reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <!-- End Container -->
+        </td>
+      </tr>
+    </table>
+    <!-- End Wrapper -->
+  </body>
+</html>
